@@ -64,7 +64,6 @@ func (opts *Options) Start( ) {
 			go opts.Dns(strings.TrimSpace(scanner.Text()), ch)
 			if len(re.Addr) > 0 {
 				opts.resultWorker(output, re)
-				fmt.Println(re)
 			}
 
 			fmt.Printf("%d\r",g)
@@ -88,6 +87,9 @@ func (opts *Options) resultWorker(f *os.File, re Result) {
 	if i==0{
 		return
 	}
+
+	code,_:=Head("http://"+re.Host)
+	fmt.Println(re,code)
 
 	writeToFile(f, fmt.Sprintf("%v\t%v",re.Host,re.Addr))
 }
