@@ -35,8 +35,7 @@ func (opts *Options) Dns(subDomain string,ch chan<- Result) {
 }
 
 func (opts *Options) Start( ) {
-
-	output, err := os.Create("log/"+opts.Domain+ ".txt")
+	output, err := os.Create(opts.Log)
 	if err != nil {
 		log.Fatalf("error on creating output file: %v", err)
 	}
@@ -65,8 +64,8 @@ func (opts *Options) Start( ) {
 	defer output.Close()
 
 	scanner := bufio.NewScanner(f)
-	log.Printf("read dict...")
-	log.Printf("Found disc total %d.", count)
+	log.Printf("Read dict...")
+	log.Printf("Found dict total %d.", count)
 	for scanner.Scan() {
 		i++
 		select {
@@ -99,7 +98,8 @@ LOOP:
 	}
 
 
-	log.Println("scan done.")
+	log.Printf("Log file --> %s", opts.Log)
+	log.Printf("Scan done")
 }
 
 func (opts *Options) resultWorker(f *os.File, re Result) {

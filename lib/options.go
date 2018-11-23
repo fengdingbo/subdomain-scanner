@@ -35,6 +35,10 @@ func (opts *Options) Validate() bool{
 		return false
 	}
 
+	if opts.Log == "" {
+		opts.Log = "log/"+opts.Domain+".txt"
+	}
+
 	return true
 }
 

@@ -25,7 +25,7 @@ func main() {
 	log.Printf("Check Domain *.%v exists",o.Domain)
 	ip,_:=o.GetExtensiveDomainIp()
 	if ip != "" {
-		log.Printf("Domain %v is extensive,*.%v ip is %s", o.Domain,o.Domain, ip)
+		log.Printf("Domain %v is extensive,*.%v ip is %s", o.Domain, o.Domain, ip)
 		os.Exit(0)
 	}
 
