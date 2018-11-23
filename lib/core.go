@@ -158,7 +158,7 @@ func (opts *Options) resultWorker(f *os.File, re Result) {
 		return
 	}
 
-	log.Println(re)
+	log.Printf("%v\t%v",re.Host,re.Addr)
 
 	writeToFile(f, fmt.Sprintf("%v\t%v",re.Host,re.Addr))
 }
