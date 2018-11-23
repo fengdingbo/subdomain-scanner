@@ -16,6 +16,10 @@ type Result struct {
 }
 
 func (opts *Options) Dns(subDomain string,ch chan<- Result) {
+	if subDomain=="" {
+		ch<- Result{}
+	}
+
 	host:= subDomain+"."+opts.Domain
 	ips, err := net.LookupHost(host)
 	if err != nil {
