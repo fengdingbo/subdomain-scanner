@@ -11,6 +11,7 @@ import (
 	"strconv"
 	"crypto/md5"
 	"encoding/hex"
+	"context"
 )
 
 type Result struct {
@@ -18,20 +19,63 @@ type Result struct {
 	Addr []string
 }
 
+
+func  (opts *Options) TestDNSServer() bool {
+	r := net.Resolver{
+		PreferGo:true,
+		Dial: opts.DNSDialer,
+	}
+	ctx := context.Background()
+	ipaddr, err := r.LookupHost(ctx, "google-public-dns-a.google.com") // test lookup an existed domain
+
+	if err != nil {
+		log.Println(err)
+		return false
+	}
+
+	if ipaddr[0] != "8.8.8.8" {
+		// Non-existed domain test
+		_, err := r.LookupHost(ctx, "test.bad.dns.fengdingbo.com")
+		// Bad DNS Server
+		if err != nil {
+			log.Println(err)
+			return true
+		}
+
+		return false
+	}
+
+	return true
+}
+
+func (opts *Options)  DNSDialer(ctx context.Context, network, address string) (net.Conn, error) {
+	d := net.Dialer{}
+	return d.DialContext(ctx, "udp", opts.DNSAddress)
+}
+
 func (opts *Options) Dns(subDomain string,ch chan<- Result) {
 	if subDomain=="" {
 		ch<- Result{}
 		return
 	}
-
 	host:= subDomain+"."+opts.Domain
-	ips, err := net.LookupHost(host)
+
+
+	r := net.Resolver{
+		//PreferGo:true,
+		Dial: opts.DNSDialer,
+	}
+
+	ctx := context.Background()
+	ipaddr, err := r.LookupHost(ctx, host)
+	//ipaddr, err := net.LookupHost(host)
 	if err != nil {
+		//fmt.Println(err)
 		ch<- Result{}
 		return
 	}
 
-	ch<- Result{Host:host, Addr:ips}
+	ch<- Result{Host:host, Addr:ipaddr}
 }
 
 func (opts *Options) Start( ) {

@@ -10,6 +10,7 @@ type Options struct {
 	Wordlist	string
 	Help 		bool
 	Log			string
+	DNSAddress			string
 }
 
 
@@ -37,6 +38,10 @@ func (opts *Options) Validate() bool{
 
 	if opts.Log == "" {
 		opts.Log = "log/"+opts.Domain+".txt"
+	}
+
+	if opts.DNSAddress == "" {
+		opts.DNSAddress = "8.8.8.8:53"
 	}
 
 	return true
