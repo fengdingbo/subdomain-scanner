@@ -4,7 +4,7 @@ import (
 	"os"
 	"github.com/fengdingbo/sub-domain-scanner/lib"
 	"flag"
-	"fmt"
+	"log"
 )
 
 func main() {
@@ -21,9 +21,11 @@ func main() {
 		os.Exit(0)
 	}
 
+	// TODO 泛域名处理逻辑
+	log.Printf("Check Domain *.%v exists",o.Domain)
 	ip,_:=o.GetExtensiveDomainIp()
 	if ip != "" {
-		fmt.Println("泛域名")
+		log.Printf("Domain %v is extensive,*.%v ip is %s", o.Domain,o.Domain, ip)
 		os.Exit(0)
 	}
 

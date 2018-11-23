@@ -76,6 +76,7 @@ func (opts *Options) Start( ) {
 				opts.resultWorker(output, re)
 			}
 			fmt.Printf(format,i,count,float64(i)/float64(count)*100)
+			//fmt.Fprintf(os.Stderr, format, i,count,float64(i)/float64(count)*100)
 		case <-time.After(3 * time.Second):
 			log.Println("3秒超时")
 			//	os.Exit(2)
