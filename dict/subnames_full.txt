@@ -15,6 +15,7 @@ my
 members
 blogs
 search
+gitea
 staging
 www7a
 www7b
