@@ -19,12 +19,7 @@ func (opts *Options) Dns(subDomain string,ch chan<- Result) {
 	host:= subDomain+"."+opts.Domain
 	ips, err := net.LookupHost(host)
 	if err != nil {
-
-		ch<- struct {
-			Host string
-			Addr []string
-		}{Host: host, Addr: []string{}}
-		//ch<-fmt.Sprint(err)
+		ch<- Result{}
 		return
 	}
 
@@ -40,7 +35,7 @@ func (opts *Options) Start( ) {
 	defer f.Close()
 
 	scanner := bufio.NewScanner(f)
-	fmt.Println("read dict...")
+	log.Println("read dict...")
 
 	// 创建空线程
 	ch := make(chan Result)
@@ -68,12 +63,12 @@ func (opts *Options) Start( ) {
 
 			fmt.Printf("%d\r",g)
 		case <-time.After(3 * time.Second):
-			fmt.Println("3秒超时")
+			log.Println("3秒超时")
 			//	os.Exit(2)
 		}
 	}
 
-	fmt.Println("")
+	log.Println("结束")
 }
 
 func (opts *Options) resultWorker(f *os.File, re Result) {
@@ -84,12 +79,11 @@ func (opts *Options) resultWorker(f *os.File, re Result) {
 			i--
 		}
 	}
-	if i==0{
+	if i==0 {
 		return
 	}
 
-	code,_:=Head("http://"+re.Host)
-	fmt.Println(re,code)
+	log.Println(re)
 
 	writeToFile(f, fmt.Sprintf("%v\t%v",re.Host,re.Addr))
 }
@@ -100,7 +94,6 @@ func (opts *Options) GetExtensiveDomainIp() (ip string,err error)  {
 	ns, err := net.LookupHost(host)
 
 	if err != nil {
-		//fmt.Fprintf(os.Stderr, "Err: %s\n", err.Error())
 		return
 	}
 
@@ -110,10 +103,10 @@ func (opts *Options) GetExtensiveDomainIp() (ip string,err error)  {
 }
 
 
-func writeToFile(f *os.File, output string) error {
-	_, err := f.WriteString(fmt.Sprintf("%s\n", output))
+func writeToFile(f *os.File, output string) (err error) {
+	_, err = f.WriteString(fmt.Sprintf("%s\n", output))
 	if err != nil {
-		return fmt.Errorf("[!] Unable to write to file %v", err)
+		return
 	}
 	return nil
 }
