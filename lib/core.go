@@ -33,15 +33,6 @@ func (opts *Options) Dns(subDomain string,ch chan<- Result) {
 }
 
 func (opts *Options) Start( ) {
-	// 读取字典
-	f, err := os.Open(opts.Wordlist)
-	if err != nil {
-		panic(err)
-	}
-	defer f.Close()
-
-	scanner := bufio.NewScanner(f)
-	log.Println("read dict...")
 
 	output, err := os.Create("log/"+opts.Domain+ ".txt")
 	if err != nil {
@@ -63,6 +54,17 @@ func (opts *Options) Start( ) {
 		go opts.Dns("", ch)
 	}
 
+	// 读取字典
+	f, err := os.Open(opts.Wordlist)
+	if err != nil {
+		panic(err)
+	}
+	defer f.Close()
+	defer output.Close()
+
+	scanner := bufio.NewScanner(f)
+	log.Printf("read dict...")
+	log.Printf("Found disc total %d.", count)
 	for scanner.Scan() {
 		i++
 		select {
@@ -95,7 +97,7 @@ LOOP:
 	}
 
 
-	log.Println("结束")
+	log.Println("scan done.")
 }
 
 func (opts *Options) resultWorker(f *os.File, re Result) {
