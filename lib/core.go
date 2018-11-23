@@ -85,7 +85,9 @@ LOOP:
 	for i := 0; i < opts.Threads; i++ {
 		select {
 			case re := <-ch:
-				fmt.Println(re)
+				if len(re.Addr) > 0 {
+					opts.resultWorker(output, re)
+				}
 			case <-time.After(3 * time.Second):
 				log.Println("3秒超时...")
 				break LOOP;
