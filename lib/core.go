@@ -53,9 +53,10 @@ func (opts *Options) Start( ) {
 		log.Fatalf("error on creating output file: %v", err)
 	}
 
-	g:=0
+	i:=0
+	count:=opts.GetFileCountLine()
 	for scanner.Scan() {
-		g++
+		i++
 		select {
 		case re := <-ch:
 			// 处理完一个，马上再添加一个
@@ -65,7 +66,7 @@ func (opts *Options) Start( ) {
 				opts.resultWorker(output, re)
 			}
 
-			fmt.Printf("%d\r",g)
+			fmt.Printf("%.4f%%\r", float64(i)/float64(count)*100)
 		case <-time.After(3 * time.Second):
 			log.Println("3秒超时")
 			//	os.Exit(2)
@@ -113,6 +114,25 @@ func writeToFile(f *os.File, output string) (err error) {
 		return
 	}
 	return nil
+}
+
+
+func (opts *Options) GetFileCountLine() int {
+	// 读取字典
+	f, err := os.Open(opts.Wordlist)
+	if err != nil {
+		panic(err)
+	}
+	defer f.Close()
+
+	scanner := bufio.NewScanner(f)
+
+	g:=0
+	for scanner.Scan() {
+		g++
+	}
+
+	return g
 }
 
 func Run(opts *Options) {

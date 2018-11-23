@@ -1,5 +1,9 @@
 package lib
 
+import (
+	"os"
+)
+
 type Options struct {
 	Threads		int
 	Domain		string
@@ -24,6 +28,10 @@ func (opts *Options) Validate() bool{
 	}
 
 	if opts.Domain=="" {
+		return false
+	}
+	_, err := os.Stat(opts.Wordlist)
+	if err!= nil {
 		return false
 	}
 
