@@ -9,6 +9,8 @@ import (
 	"net"
 	"log"
 	"strconv"
+	"crypto/md5"
+	"encoding/hex"
 )
 
 type Result struct {
@@ -120,7 +122,10 @@ func (opts *Options) resultWorker(f *os.File, re Result) {
 
 // 获取泛域名ip地址
 func (opts *Options) GetExtensiveDomainIp() (ip string,err error)  {
-	host := "*." + opts.Domain
+	// randSub 可以是*，实测过程中，有的泛域名用*请求会不存在数据，
+	byte := md5.Sum([]byte(time.Now().String()))
+	randSub:=hex.EncodeToString(byte[:])
+	host := randSub+"." + opts.Domain
 	ns, err := net.LookupHost(host)
 
 	if err != nil {
