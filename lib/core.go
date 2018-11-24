@@ -164,20 +164,25 @@ func (opts *Options) resultWorker(f *os.File, re Result) {
 }
 
 // 获取泛域名ip地址
-func (opts *Options) GetExtensiveDomainIp() (ip string,err error)  {
+func (opts *Options) GetExtensiveDomainIp() (ip string,ok bool)  {
 	// randSub 可以是*，实测过程中，有的泛域名用*请求会不存在数据，
 	byte := md5.Sum([]byte(time.Now().String()))
 	randSub:=hex.EncodeToString(byte[:])
-	host := randSub+"." + opts.Domain
-	ns, err := net.LookupHost(host)
+	//host := randSub+"." + opts.Domain
+	//ns, err := net.LookupHost(host)
 
-	if err != nil {
-		return
+
+	ch := make(chan Result)
+	go opts.Dns(randSub, ch)
+
+	select {
+		case res := <-ch:
+			if len(res.Addr)>=1 {
+				return res.Addr[0], true
+			}
 	}
 
-	ip = ns[0]
-
-	return ip,nil
+	return "", false
 }
 
 

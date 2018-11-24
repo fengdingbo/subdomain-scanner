@@ -32,8 +32,7 @@ func main() {
 
 	// TODO 泛域名处理逻辑
 	log.Printf("[+] Validate extensive domain *.%v exists",o.Domain)
-	ip,_:=o.GetExtensiveDomainIp()
-	if ip != "" {
+	if ip,ok:=o.GetExtensiveDomainIp();ok {
 		log.Printf("Domain %v is extensive,*.%v ip is %s", o.Domain, o.Domain, ip)
 		os.Exit(0)
 	}
