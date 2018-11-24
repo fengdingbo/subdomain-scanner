@@ -6,12 +6,10 @@ import (
 	"bufio"
 	"strings"
 	"time"
-	"net"
 	"log"
 	"strconv"
 	"crypto/md5"
 	"encoding/hex"
-	"context"
 )
 
 type Result struct {
@@ -21,61 +19,23 @@ type Result struct {
 
 
 func  (opts *Options) TestDNSServer() bool {
-	r := net.Resolver{
-		PreferGo:true,
-		Dial: opts.DNSDialer,
-	}
-	ctx := context.Background()
-	ipaddr, err := r.LookupHost(ctx, "google-public-dns-a.google.com") // test lookup an existed domain
+	ipaddr, err := opts.LookupHost("google-public-dns-a.google.com") // test lookup an existed domain
 
 	if err != nil {
 		log.Println(err)
 		return false
 	}
-
+	// Validate dns pollution
 	if ipaddr[0] != "8.8.8.8" {
 		// Non-existed domain test
-		_, err := r.LookupHost(ctx, "test.bad.dns.fengdingbo.com")
+		_, err := opts.LookupHost("test.bad.dns.fengdingbo.com")
 		// Bad DNS Server
-		if err != nil {
-			log.Println(err)
-			return true
+		if err == nil {
+			return false
 		}
-
-		return false
 	}
 
 	return true
-}
-
-func (opts *Options)  DNSDialer(ctx context.Context, network, address string) (net.Conn, error) {
-	d := net.Dialer{}
-	return d.DialContext(ctx, "udp", opts.DNSAddress)
-}
-
-func (opts *Options) Dns(subDomain string,ch chan<- Result) {
-	if subDomain=="" {
-		ch<- Result{}
-		return
-	}
-	host:= subDomain+"."+opts.Domain
-
-
-	r := net.Resolver{
-		//PreferGo:true,
-		Dial: opts.DNSDialer,
-	}
-
-	ctx := context.Background()
-	ipaddr, err := r.LookupHost(ctx, host)
-	//ipaddr, err := net.LookupHost(host)
-	if err != nil {
-		//fmt.Println(err)
-		ch<- Result{}
-		return
-	}
-
-	ch<- Result{Host:host, Addr:ipaddr}
 }
 
 func (opts *Options) Start( ) {
@@ -121,7 +81,7 @@ func (opts *Options) Start( ) {
 				opts.resultWorker(output, re)
 			}
 			fmt.Fprintf(os.Stderr, format, i,count,float64(i)/float64(count)*100)
-		case <-time.After(3 * time.Second):
+		case <-time.After(1 * time.Second):
 			log.Println("3秒超时")
 			//	os.Exit(0)
 		}
