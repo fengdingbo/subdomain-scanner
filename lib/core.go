@@ -21,13 +21,14 @@ type Result struct {
 // 获取泛域名ip地址
 func (opts *Options) GetExtensiveDomainIp() (ip string,ok bool)  {
 	// Go package net exists bug?
+	// Nonsupport RFC 4592
 	// https://github.com/golang/go/issues/28947
-	// host:="*.qzone.qq.com" --> lookup *.qzone.qq.com: no such host
+	// opts.LookupHost("*.qzone.qq.com") //  --> lookup *.qzone.qq.com: no such host
 
 	byte := md5.Sum([]byte(time.Now().String()))
 	randSub:=hex.EncodeToString(byte[:])
 
-	host:=randSub+"."+opts.Domain
+	host := fmt.Sprintf("%s.%s", randSub, opts.Domain)
 	addrs, err := opts.LookupHost(host)
 
 	if err == nil {
@@ -100,7 +101,7 @@ func (opts *Options) Start( ) {
 				opts.resultWorker(output, re)
 			}
 			fmt.Fprintf(os.Stderr, format, i,count,float64(i)/float64(count)*100)
-		case <-time.After(1 * time.Second):
+		case <-time.After(60 * time.Second):
 			log.Println("1秒超时")
 			//	os.Exit(0)
 		}
@@ -110,13 +111,13 @@ func (opts *Options) Start( ) {
 LOOP:
 	for i := 0; i < opts.Threads; i++ {
 		select {
-			case re := <-ch:
-				if len(re.Addr) > 0 {
-					opts.resultWorker(output, re)
-				}
-			case <-time.After(1 * time.Second):
-				log.Println("1秒超时...")
-				break LOOP;
+		case re := <-ch:
+			if len(re.Addr) > 0 {
+				opts.resultWorker(output, re)
+			}
+		case <-time.After(60 * time.Second):
+			log.Println("1秒超时...")
+			break LOOP;
 		}
 	}
 

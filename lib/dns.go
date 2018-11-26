@@ -3,6 +3,7 @@ package lib
 import (
 	"net"
 	"context"
+	"fmt"
 )
 
 func (opts *Options)  DNSDialer(ctx context.Context, network, address string) (net.Conn, error) {
@@ -15,8 +16,7 @@ func (opts *Options) Dns(subDomain string,ch chan<- Result) {
 		ch<- Result{}
 		return
 	}
-
-	host:= subDomain+"."+opts.Domain
+	host := fmt.Sprintf("%s.%s",subDomain,opts.Domain)
 	addrs, err:=opts.LookupHost(host)
 	if err != nil {
 		//fmt.Println(err)
