@@ -27,11 +27,10 @@ func (opts *Options) GetExtensiveDomainIp() (ip string,ok bool)  {
 	byte := md5.Sum([]byte(time.Now().String()))
 	randSub:=hex.EncodeToString(byte[:])
 
-	host:=randSub+opts.Domain
+	host:=randSub+"."+opts.Domain
 	addrs, err := opts.LookupHost(host)
 
-	if err != nil {
-		log.Println(err)
+	if err == nil {
 		return addrs[0], true
 	}
 
