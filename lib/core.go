@@ -18,6 +18,26 @@ type Result struct {
 }
 
 
+// 获取泛域名ip地址
+func (opts *Options) GetExtensiveDomainIp() (ip string,ok bool)  {
+	// Go core bug?
+	// https://github.com/golang/go/issues/28947
+	// host:="*.qzone.qq.com" --> lookup *.qzone.qq.com: no such host
+
+	byte := md5.Sum([]byte(time.Now().String()))
+	randSub:=hex.EncodeToString(byte[:])
+
+	host:=randSub+opts.Domain
+	addrs, err := opts.LookupHost(host)
+
+	if err != nil {
+		log.Println(err)
+		return addrs[0], true
+	}
+
+	return "", false
+}
+
 func  (opts *Options) TestDNSServer() bool {
 	ipaddr, err := opts.LookupHost("google-public-dns-a.google.com") // test lookup an existed domain
 
@@ -121,28 +141,6 @@ func (opts *Options) resultWorker(f *os.File, re Result) {
 	log.Printf("%v\t%v",re.Host,re.Addr)
 
 	writeToFile(f, fmt.Sprintf("%v\t%v",re.Host,re.Addr))
-}
-
-// 获取泛域名ip地址
-func (opts *Options) GetExtensiveDomainIp() (ip string,ok bool)  {
-	// randSub 可以是*，实测过程中，有的泛域名用*请求会不存在数据，
-	byte := md5.Sum([]byte(time.Now().String()))
-	randSub:=hex.EncodeToString(byte[:])
-	//host := randSub+"." + opts.Domain
-	//ns, err := net.LookupHost(host)
-
-
-	ch := make(chan Result)
-	go opts.Dns(randSub, ch)
-
-	select {
-		case res := <-ch:
-			if len(res.Addr)>=1 {
-				return res.Addr[0], true
-			}
-	}
-
-	return "", false
 }
 
 

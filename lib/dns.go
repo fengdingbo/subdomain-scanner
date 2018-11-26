@@ -3,12 +3,11 @@ package lib
 import (
 	"net"
 	"context"
-	"time"
 )
 
 func (opts *Options)  DNSDialer(ctx context.Context, network, address string) (net.Conn, error) {
 	d := net.Dialer{}
-	return d.DialContext(ctx, "tcp", opts.DNSAddress)
+	return d.DialContext(ctx, "udp", opts.DNSAddress)
 }
 
 func (opts *Options) Dns(subDomain string,ch chan<- Result) {
@@ -36,7 +35,7 @@ func  (opts *Options) LookupHost(host string) (addrs []string, err error) {
 
 	ctx := context.Background()
 
-	ctx,_=context.WithTimeout(ctx,time.Second/2)
+	//ctx,_=context.WithTimeout(ctx,time.Second/2)
 	ipaddr, err := r.LookupHost(ctx, host)
 	if err != nil {
 		return
