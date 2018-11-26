@@ -41,7 +41,7 @@ func (opts *Options) Validate() bool{
 	}
 
 	if opts.DNSAddress == "" {
-		opts.DNSAddress = "8.8.8.8:53"
+		opts.DNSAddress = "223.5.5.5:53"
 	}
 
 	return true

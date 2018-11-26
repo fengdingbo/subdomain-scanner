@@ -20,7 +20,7 @@ type Result struct {
 
 // 获取泛域名ip地址
 func (opts *Options) GetExtensiveDomainIp() (ip string,ok bool)  {
-	// Go core bug?
+	// Go package net exists bug?
 	// https://github.com/golang/go/issues/28947
 	// host:="*.qzone.qq.com" --> lookup *.qzone.qq.com: no such host
 

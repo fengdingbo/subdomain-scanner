@@ -3,6 +3,7 @@ package lib
 import (
 	"net"
 	"context"
+	"time"
 )
 
 func (opts *Options)  DNSDialer(ctx context.Context, network, address string) (net.Conn, error) {
@@ -35,7 +36,7 @@ func  (opts *Options) LookupHost(host string) (addrs []string, err error) {
 
 	ctx := context.Background()
 
-	//ctx,_=context.WithTimeout(ctx,time.Second/2)
+	ctx,_=context.WithTimeout(ctx,100*time.Millisecond)
 	ipaddr, err := r.LookupHost(ctx, host)
 	if err != nil {
 		return
