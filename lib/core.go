@@ -101,7 +101,7 @@ func (opts *Options) Start( ) {
 			}
 			fmt.Fprintf(os.Stderr, format, i,count,float64(i)/float64(count)*100)
 		case <-time.After(1 * time.Second):
-			log.Println("3秒超时")
+			log.Println("1秒超时")
 			//	os.Exit(0)
 		}
 	}
@@ -114,8 +114,8 @@ LOOP:
 				if len(re.Addr) > 0 {
 					opts.resultWorker(output, re)
 				}
-			case <-time.After(3 * time.Second):
-				log.Println("3秒超时...")
+			case <-time.After(1 * time.Second):
+				log.Println("1秒超时...")
 				break LOOP;
 		}
 	}

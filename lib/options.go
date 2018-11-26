@@ -14,7 +14,7 @@ type Options struct {
 }
 
 
-func NewOptions() *Options {
+func New() *Options {
 	return &Options{
 	}
 }

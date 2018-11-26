@@ -8,7 +8,7 @@ import (
 )
 
 func main() {
-	o:=lib.NewOptions()
+	o:=lib.New()
 	flag.IntVar(&o.Threads, "t", 200, "Num of scan threads")
 	flag.StringVar(&o.Domain, "d", "", "The target Domain")
 	flag.StringVar(&o.Wordlist, "w", "dict/subnames_full.txt", "Dict to the wordlist")
