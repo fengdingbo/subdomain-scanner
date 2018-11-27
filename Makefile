@@ -8,7 +8,7 @@ current:
 windows:
 	@for GOARCH in ${ARCHS}; do \
 		echo "Building for windows $${GOARCH} ..." ; \
-		mkdir -p ${TARGET}/windows-$${GOARCH} ; \
+		mkdir -p ${TARGET} ; \
 		GOOS=windows GOARCH=$${GOARCH} go build -ldflags=${LDFLAGS} \
 		 -o ${TARGET}/${BIN}-for-$${GOARCH}.exe ; \
 	done; \
