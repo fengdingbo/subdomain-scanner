@@ -11,7 +11,7 @@ func main() {
 	o:=lib.New()
 	flag.IntVar(&o.Threads, "t", 200, "Num of scan threads")
 	flag.StringVar(&o.Domain, "d", "", "The target Domain")
-	flag.StringVar(&o.Wordlist, "w", "dict/subnames_full.txt", "Dict to the wordlist")
+	flag.StringVar(&o.Dict, "f", "dict/subnames_full.txt", "File contains new line delimited subs")
 	flag.BoolVar(&o.Help, "h", false, "Show this help message and exit")
 	flag.StringVar(&o.Log, "o", "", "Output file to write results to (defaults to ./log/{target}).txt")
 	flag.StringVar(&o.DNSAddress, "dns", "", "DNS global server,eg:8.8.8.8")

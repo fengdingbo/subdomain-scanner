@@ -2,15 +2,17 @@ package lib
 
 import (
 	"os"
+	"fmt"
 )
 
 type Options struct {
+	wordMap		map[string]bool
 	Threads		int
 	Domain		string
-	Wordlist	string
+	Dict		string
 	Help 		bool
 	Log			string
-	DNSAddress			string
+	DNSAddress	string
 }
 
 
@@ -31,13 +33,13 @@ func (opts *Options) Validate() bool{
 	if opts.Domain=="" {
 		return false
 	}
-	_, err := os.Stat(opts.Wordlist)
+	_, err := os.Stat(opts.Dict)
 	if err!= nil {
 		return false
 	}
 
 	if opts.Log == "" {
-		opts.Log = "log/"+opts.Domain+".txt"
+		opts.Log = fmt.Sprintf("%s.txt",opts.Domain)
 	}
 
 	if opts.DNSAddress == "" {

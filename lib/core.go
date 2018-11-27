@@ -65,7 +65,7 @@ func (opts *Options) Start( ) {
 	}
 
 	i:=0
-	count:=opts.GetFileCountLine()
+	count:=len(opts.wordMap)
 	width:=len(strconv.Itoa(count))
 	format:=fmt.Sprintf("%%%dd|%%%dd|%%.4f%%%%\r",width,width)
 
@@ -79,24 +79,17 @@ func (opts *Options) Start( ) {
 		go opts.Dns("", ch)
 	}
 
-	// 读取字典
-	f, err := os.Open(opts.Wordlist)
-	if err != nil {
-		panic(err)
-	}
-	defer f.Close()
 	defer output.Close()
 
-	scanner := bufio.NewScanner(f)
 	log.Printf("Read dict...")
 	log.Printf("Found dict total %d.", count)
-	for scanner.Scan() {
+	for s:=range opts.wordMap {
 		i++
 		select {
 		case re := <-ch:
 			// 处理完一个，马上再添加一个
 			// 线程添加，直到某结果集处理完
-			go opts.Dns(strings.TrimSpace(scanner.Text()), ch)
+			go opts.Dns(s, ch)
 			if len(re.Addr) > 0 {
 				opts.resultWorker(output, re)
 			}
@@ -152,25 +145,31 @@ func writeToFile(f *os.File, output string) (err error) {
 	return nil
 }
 
-
-func (opts *Options) GetFileCountLine() int {
+func (opts *Options) loadDictMap() {
 	// 读取字典
-	f, err := os.Open(opts.Wordlist)
+	f, err := os.Open(opts.Dict)
+	if err != nil {
+		panic(err)
+	}
+	defer f.Close()
+
+
+	opts.wordMap = make(map[string]bool)
+
 	if err != nil {
 		panic(err)
 	}
 	defer f.Close()
 
 	scanner := bufio.NewScanner(f)
-
-	g:=0
 	for scanner.Scan() {
-		g++
+		opts.wordMap[strings.TrimSpace(scanner.Text())] = true
 	}
-
-	return g
+	delete(opts.wordMap,"")
 }
 
 func Run(opts *Options) {
+	opts.loadDictMap()
+
 	opts.Start()
 }
