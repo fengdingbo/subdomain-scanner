@@ -85,6 +85,8 @@ func (opts *Options) Start( ) {
 	log.Printf("Found dict total %d.", count)
 	for _,s:=range opts.wordMap {
 		i++
+		fmt.Fprintf(os.Stderr, format, i, count, float64(i)/float64(count)*100, time.Since(start).Seconds())
+
 		select {
 		case re := <-ch:
 			// 处理完一个，马上再添加一个
@@ -93,7 +95,6 @@ func (opts *Options) Start( ) {
 			if len(re.Addr) > 0 {
 				opts.resultWorker(output, re)
 			}
-			fmt.Fprintf(os.Stderr, format, i, count, float64(i)/float64(count)*100, time.Since(start).Seconds())
 		case <-time.After(6 * time.Second):
 			log.Println("6秒超时")
 			//	os.Exit(0)
@@ -132,14 +133,14 @@ func (opts *Options) resultWorker(f *os.File, re Result) {
 		return
 	}
 
-	log.Printf("%v\t%v", re.Host,re.Addr)
 
-	writeToFile(f, fmt.Sprintf("%v\t%v\n",re.Host,re.Addr))
+	writeToFile(f, fmt.Sprintf("%v\t%v",re.Host,re.Addr))
 }
 
 
 func writeToFile(f *os.File, output string) (err error) {
-	_, err = f.WriteString(output)
+	log.Printf("[Found] %s\n", output)
+	_, err = f.WriteString(fmt.Sprintf("%s\n", output))
 	if err != nil {
 		return
 	}
