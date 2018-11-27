@@ -59,6 +59,7 @@ func  (opts *Options) TestDNSServer() bool {
 }
 
 func (opts *Options) Start( ) {
+	start:=time.Now()
 	output, err := os.Create(opts.Log)
 	if err != nil {
 		log.Fatalf("error on creating output file: %v", err)
@@ -67,8 +68,7 @@ func (opts *Options) Start( ) {
 	i:=0
 	count:=len(opts.wordMap)
 	width:=len(strconv.Itoa(count))
-	format:=fmt.Sprintf("%%%dd|%%%dd|%%.4f%%%%\r",width,width)
-
+	format:=fmt.Sprintf("%%%dd|%%%dd|%%.4f%%%%|scanned in %%.2f seconds\r",width,width)
 
 	// 创建空线程
 	if count < opts.Threads {
@@ -93,9 +93,9 @@ func (opts *Options) Start( ) {
 			if len(re.Addr) > 0 {
 				opts.resultWorker(output, re)
 			}
-			fmt.Fprintf(os.Stderr, format, i,count,float64(i)/float64(count)*100)
-		case <-time.After(60 * time.Second):
-			log.Println("1秒超时")
+			fmt.Fprintf(os.Stderr, format, i,count,float64(i)/float64(count)*100, time.Since(start).Seconds())
+		case <-time.After(6 * time.Second):
+			log.Println("6秒超时")
 			//	os.Exit(0)
 		}
 	}
@@ -108,15 +108,16 @@ LOOP:
 			if len(re.Addr) > 0 {
 				opts.resultWorker(output, re)
 			}
-		case <-time.After(60 * time.Second):
-			log.Println("1秒超时...")
+		case <-time.After(6 * time.Second):
+			log.Println("6秒超时...")
 			break LOOP;
 		}
 	}
 
 
 	log.Printf("Log file --> %s", opts.Log)
-	log.Printf("Scan done")
+
+	log.Printf(format[0:len(format)-1], i,count,float64(i)/float64(count)*100, time.Since(start).Seconds())
 }
 
 func (opts *Options) resultWorker(f *os.File, re Result) {
