@@ -65,7 +65,6 @@ func (opts *Options) Start( ) {
 		log.Fatalf("error on creating output file: %v", err)
 	}
 
-	i:=0
 	count:=len(opts.wordMap)
 	width:=len(strconv.Itoa(count))
 	format:=fmt.Sprintf("%%%dd|%%%dd|%%.4f%%%%|scanned in %%.2f seconds\r",width,width)
@@ -83,9 +82,9 @@ func (opts *Options) Start( ) {
 
 	log.Printf("Read dict...")
 	log.Printf("Found dict total %d.", count)
+	i:=0
 	for _,s:=range opts.wordMap {
 		i++
-		fmt.Fprintf(os.Stderr, format, i, count, float64(i)/float64(count)*100, time.Since(start).Seconds())
 
 		select {
 		case re := <-ch:
@@ -95,6 +94,8 @@ func (opts *Options) Start( ) {
 			if len(re.Addr) > 0 {
 				opts.resultWorker(output, re)
 			}
+
+			fmt.Fprintf(os.Stderr, format, i, count, float64(i)/float64(count)*100, time.Since(start).Seconds())
 		case <-time.After(6 * time.Second):
 			log.Println("6秒超时")
 			//	os.Exit(0)
