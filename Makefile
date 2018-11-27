@@ -10,7 +10,7 @@ windows:
 		echo "Building for windows $${GOARCH} ..." ; \
 		mkdir -p ${TARGET}/windows-$${GOARCH} ; \
 		GOOS=windows GOARCH=$${GOARCH} go build -ldflags=${LDFLAGS} \
-		 -o ${TARGET}/windows-$${GOARCH}/${BIN}.exe ; \
+		 -o ${TARGET}/${BIN}-for-$${GOARCH}.exe ; \
 	done; \
 	echo "Done."
 
