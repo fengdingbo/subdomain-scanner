@@ -6,7 +6,7 @@ import (
 )
 
 type Options struct {
-	wordMap		map[string]bool
+	wordMap		[]string
 	Threads		int
 	Domain		string
 	Dict		string

@@ -83,7 +83,7 @@ func (opts *Options) Start( ) {
 
 	log.Printf("Read dict...")
 	log.Printf("Found dict total %d.", count)
-	for s:=range opts.wordMap {
+	for _,s:=range opts.wordMap {
 		i++
 		select {
 		case re := <-ch:
@@ -93,7 +93,7 @@ func (opts *Options) Start( ) {
 			if len(re.Addr) > 0 {
 				opts.resultWorker(output, re)
 			}
-			fmt.Fprintf(os.Stderr, format, i,count,float64(i)/float64(count)*100, time.Since(start).Seconds())
+			fmt.Fprintf(os.Stderr, format, i, count, float64(i)/float64(count)*100, time.Since(start).Seconds())
 		case <-time.After(6 * time.Second):
 			log.Println("6秒超时")
 			//	os.Exit(0)
@@ -132,19 +132,20 @@ func (opts *Options) resultWorker(f *os.File, re Result) {
 		return
 	}
 
-	log.Printf("%v\t%v",re.Host,re.Addr)
+	log.Printf("%v\t%v", re.Host,re.Addr)
 
-	writeToFile(f, fmt.Sprintf("%v\t%v",re.Host,re.Addr))
+	writeToFile(f, fmt.Sprintf("%v\t%v\n",re.Host,re.Addr))
 }
 
 
 func writeToFile(f *os.File, output string) (err error) {
-	_, err = f.WriteString(fmt.Sprintf("%s\n", output))
+	_, err = f.WriteString(output)
 	if err != nil {
 		return
 	}
 	return nil
 }
+
 
 func (opts *Options) loadDictMap() {
 	// 读取字典
@@ -154,9 +155,6 @@ func (opts *Options) loadDictMap() {
 	}
 	defer f.Close()
 
-
-	opts.wordMap = make(map[string]bool)
-
 	if err != nil {
 		panic(err)
 	}
@@ -164,9 +162,21 @@ func (opts *Options) loadDictMap() {
 
 	scanner := bufio.NewScanner(f)
 	for scanner.Scan() {
-		opts.wordMap[strings.TrimSpace(scanner.Text())] = true
+		s:=strings.TrimSpace(scanner.Text())
+		if s!="" && !inArray(opts.wordMap, s) {
+			opts.wordMap  = append(opts.wordMap, s)
+		}
 	}
-	delete(opts.wordMap,"")
+}
+
+func inArray(array []string, search string) bool{
+	for _,s:=range array {
+		if s == search {
+			return true
+		}
+	}
+
+	return false
 }
 
 func Run(opts *Options) {
