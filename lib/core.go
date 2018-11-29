@@ -3,23 +3,124 @@ package lib
 import (
 	"fmt"
 	"os"
-	"bufio"
-	"strings"
 	"time"
 	"log"
-	"strconv"
 	"crypto/md5"
 	"encoding/hex"
+	"bufio"
+	"context"
+	"strings"
+	"sync"
+	"net"
 )
 
 type Result struct {
 	Host string
-	Addr []string
+	Addr []net.IP
 }
 
+type Scanner struct {
+	opts		*Options
+	resultChan	chan Result
+	wordChan	chan string
+	count		int
+	issued		int
+	context		context.Context
+	mu               *sync.RWMutex
+}
+
+func NewScanner(opts *Options) *Scanner {
+	var this Scanner
+	this.opts = opts
+
+	this.wordChan = make(chan string, this.opts.Threads)
+	this.resultChan = make(chan Result)
+	this.mu = new(sync.RWMutex)
+	return &this
+}
+
+func (this *Scanner) Start( ) {
+	for i := 0; i < this.opts.Threads; i++ {
+		go this.worker()
+	}
+
+	go this.result()
+	go this.progressPrint()
+
+	// 读取字典
+	f, err := os.Open(this.opts.Dict)
+	if err != nil {
+		panic(err)
+	}
+
+	defer f.Close()
+
+	this.count = getCountLine(f)
+
+	f.Seek(0,0)
+	scanner := bufio.NewScanner(f)
+
+	for scanner.Scan(){
+		word := strings.TrimSpace(scanner.Text())
+		this.wordChan<-word
+	}
+	return
+}
+
+func (this *Scanner) worker() {
+	for v:= range this.wordChan {
+
+		this.issued++
+
+		host:=fmt.Sprintf("%s.%s", v, this.opts.Domain)
+		ip,err:=this.LookupHost(host)
+
+		//fmt.Println(Result{host,ip},err)
+		if err==nil {
+			this.resultChan<-Result{host,ip}
+		}
+	}
+
+	fmt.Println("worker")
+}
+
+func (this *Scanner)result() {
+
+	f,err:=os.Create(this.opts.Log)
+	for v:=range this.resultChan{
+		this.progressClean()
+		fmt.Printf("[+] %v\n", v)
+		if err==nil {
+			f.WriteString(fmt.Sprintf("%v\t%v\n",v.Host,v.Addr))
+		}
+	}
+}
+
+func (this *Scanner) progressClean() {
+	fmt.Fprint(os.Stderr, "\r\x1b[2K")
+}
+
+func (this *Scanner)progressPrint() {
+	start:=time.Now()
+	tick := time.NewTicker(1 * time.Second)
+	format:="\r%d|%d|%.4f%%|scanned in %.2f seconds"
+	for {
+		select {
+		case <-tick.C:
+			this.mu.RLock()
+			fmt.Fprintf(os.Stderr, format,
+				this.issued,
+				this.count,
+				float64(this.issued)/float64(this.count)*100,
+				time.Since(start).Seconds(),
+			)
+			this.mu.RUnlock()
+		}
+	}
+}
 
 // 获取泛域名ip地址
-func (opts *Options) GetExtensiveDomainIp() (ip string,ok bool)  {
+func (this *Scanner) GetExtensiveDomainIp() (ip string,ok bool)  {
 	// Go package net exists bug?
 	// Nonsupport RFC 4592
 	// https://github.com/golang/go/issues/28947
@@ -28,27 +129,27 @@ func (opts *Options) GetExtensiveDomainIp() (ip string,ok bool)  {
 	byte := md5.Sum([]byte(time.Now().String()))
 	randSub:=hex.EncodeToString(byte[:])
 
-	host := fmt.Sprintf("%s.%s", randSub, opts.Domain)
-	addrs, err := opts.LookupHost(host)
+	host := fmt.Sprintf("%s.%s", randSub, this.opts.Domain)
+	addrs, err := this.LookupHost(host)
 
 	if err == nil {
-		return addrs[0], true
+		return addrs[0].String(), true
 	}
 
 	return "", false
 }
 
-func  (opts *Options) TestDNSServer() bool {
-	ipaddr, err := opts.LookupHost("google-public-dns-a.google.com") // test lookup an existed domain
+func (this *Scanner) TestDNSServer() bool {
+	ipaddr, err := this.LookupHost("google-public-dns-a.google.com") // test lookup an existed domain
 
 	if err != nil {
 		log.Println(err)
 		return false
 	}
 	// Validate dns pollution
-	if ipaddr[0] != "8.8.8.8" {
+	if ipaddr[0].String() != "8.8.8.8" {
 		// Non-existed domain test
-		_, err := opts.LookupHost("test.bad.dns.fengdingbo.com")
+		_, err := this.LookupHost("test.bad.dns.fengdingbo.com")
 		// Bad DNS Server
 		if err == nil {
 			return false
@@ -58,131 +159,12 @@ func  (opts *Options) TestDNSServer() bool {
 	return true
 }
 
-func (opts *Options) Start( ) {
-	start:=time.Now()
-	output, err := os.Create(opts.Log)
-	if err != nil {
-		log.Fatalf("error on creating output file: %v", err)
-	}
-
-	count:=len(opts.wordMap)
-	width:=len(strconv.Itoa(count))
-	format:=fmt.Sprintf("%%%dd|%%%dd|%%.4f%%%%|scanned in %%.2f seconds\r",width,width)
-
-	// 创建空线程
-	if count < opts.Threads {
-		opts.Threads=count
-	}
-	ch := make(chan Result)
-	for i := 0; i < opts.Threads; i++ {
-		go opts.Dns("", ch)
-	}
-
-	defer output.Close()
-
-	log.Printf("Read dict...")
-	log.Printf("Found dict total %d.", count)
+func getCountLine(f *os.File) int {
 	i:=0
-	for _,s:=range opts.wordMap {
-		i++
-
-		select {
-		case re := <-ch:
-			// 处理完一个，马上再添加一个
-			// 线程添加，直到某结果集处理完
-			go opts.Dns(s, ch)
-			if len(re.Addr) > 0 {
-				opts.resultWorker(output, re)
-			}
-
-			fmt.Fprintf(os.Stderr, format, i, count, float64(i)/float64(count)*100, time.Since(start).Seconds())
-		case <-time.After(6 * time.Second):
-			log.Println("6秒超时")
-			//	os.Exit(0)
-		}
-	}
-
-	// bug 最后N个没有被接收
-LOOP:
-	for i := 0; i < opts.Threads; i++ {
-		select {
-		case re := <-ch:
-			if len(re.Addr) > 0 {
-				opts.resultWorker(output, re)
-			}
-		case <-time.After(6 * time.Second):
-			log.Println("6秒超时...")
-			break LOOP;
-		}
-	}
-
-
-	log.Printf("Log file --> %s", opts.Log)
-
-	log.Printf(format[0:len(format)-1], i,count,float64(i)/float64(count)*100, time.Since(start).Seconds())
-}
-
-func (opts *Options) resultWorker(f *os.File, re Result) {
-	// 如果没有一个可用ip存在,则不记录
-	i:=len(re.Addr);
-	for _,v:= range re.Addr{
-		if (IsBlackIP(v)) {
-			i--
-		}
-	}
-	if i==0 {
-		return
-	}
-
-
-	writeToFile(f, fmt.Sprintf("%v\t%v",re.Host,re.Addr))
-}
-
-
-func writeToFile(f *os.File, output string) (err error) {
-	log.Printf("[Found] %s\n", output)
-	_, err = f.WriteString(fmt.Sprintf("%s\n", output))
-	if err != nil {
-		return
-	}
-	return nil
-}
-
-
-func (opts *Options) loadDictMap() {
-	// 读取字典
-	f, err := os.Open(opts.Dict)
-	if err != nil {
-		panic(err)
-	}
-	defer f.Close()
-
-	if err != nil {
-		panic(err)
-	}
-	defer f.Close()
-
 	scanner := bufio.NewScanner(f)
 	for scanner.Scan() {
-		s:=strings.TrimSpace(scanner.Text())
-		if s!="" && !inArray(opts.wordMap, s) {
-			opts.wordMap  = append(opts.wordMap, s)
-		}
-	}
-}
-
-func inArray(array []string, search string) bool{
-	for _,s:=range array {
-		if s == search {
-			return true
-		}
+		i++
 	}
 
-	return false
-}
-
-func Run(opts *Options) {
-	opts.loadDictMap()
-
-	opts.Start()
+	return i
 }

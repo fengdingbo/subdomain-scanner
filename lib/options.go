@@ -39,11 +39,16 @@ func (opts *Options) Validate() bool{
 	}
 
 	if opts.Log == "" {
-		opts.Log = fmt.Sprintf("%s.txt",opts.Domain)
+		logDir:="log"
+		_, err := os.Stat(logDir)
+		if err!= nil {
+			os.Mkdir(logDir, os.ModePerm)
+		}
+		opts.Log = fmt.Sprintf("%s/%s.txt",logDir, opts.Domain)
 	}
 
 	if opts.DNSAddress == "" {
-		opts.DNSAddress = "223.5.5.5:53"
+		opts.DNSAddress = "8.8.8.8:53"
 	}
 
 	return true

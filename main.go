@@ -5,9 +5,12 @@ import (
 	"github.com/fengdingbo/sub-domain-scanner/lib"
 	"flag"
 	"log"
+	"os/signal"
+	"syscall"
+	"fmt"
 )
 
-func main() {
+func loadOptions() *lib.Options {
 	o:=lib.New()
 	flag.IntVar(&o.Threads, "t", 200, "Num of scan threads")
 	flag.StringVar(&o.Domain, "d", "", "The target Domain")
@@ -21,10 +24,16 @@ func main() {
 		flag.Usage()
 		os.Exit(0)
 	}
+	return o
+}
 
+func main() {
+	o:=loadOptions()
+
+	this:=lib.NewScanner(o)
 
 	log.Printf("[+] Validate DNS servers...")
-	if !o.TestDNSServer() {
+	if !this.TestDNSServer() {
 		log.Println("[!] DNS servers unreliable")
 		os.Exit(0)
 	}
@@ -32,10 +41,13 @@ func main() {
 
 	// TODO 泛域名处理逻辑
 	log.Printf("[+] Validate extensive domain *.%v exists",o.Domain)
-	if ip,ok:=o.GetExtensiveDomainIp();ok {
+	if ip,ok:=this.GetExtensiveDomainIp();ok {
 		log.Printf("Domain %v is extensive,*.%v ip is %s", o.Domain, o.Domain, ip)
 		os.Exit(0)
 	}
+	this.Start()
 
-	lib.Run(o)
+	sig := make(chan os.Signal, 1)
+	signal.Notify(sig, syscall.SIGINT, syscall.SIGTERM)
+	fmt.Printf("quit (%v)\n", <-sig)
 }
