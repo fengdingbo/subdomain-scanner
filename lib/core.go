@@ -26,6 +26,7 @@ type Scanner struct {
 	context    context.Context
 	log        *os.File
 	mu         *sync.RWMutex
+	timeStart  time.Time
 }
 
 func NewScanner(opts *Options) *Scanner {
@@ -46,6 +47,7 @@ func NewScanner(opts *Options) *Scanner {
 }
 
 func (this *Scanner) Start() {
+	this.timeStart = time.Now()
 	var wg sync.WaitGroup
 	wg.Add(1)
 	go this.progressPrint(&wg)
@@ -76,6 +78,16 @@ func (this *Scanner) Start() {
 	}
 
 	wg.Wait()
+
+	format := "\r%d|%d|%.4f%%|scanned in %.2f seconds\n"
+	this.mu.RLock()
+	fmt.Fprintf(os.Stderr, format,
+		this.issued,
+		this.count,
+		float64(this.issued)/float64(this.count)*100,
+		time.Since(this.timeStart).Seconds(),
+	)
+	this.mu.RUnlock()
 
 }
 
@@ -133,10 +145,10 @@ func (this *Scanner) progressClean() {
 }
 
 func (this *Scanner) progressPrint(wg *sync.WaitGroup) {
-	start := time.Now()
+	//start := time.Now()
 	tick := time.NewTicker(1 * time.Second)
 	format := "\r%d|%d|%.4f%%|scanned in %.2f seconds"
-	log.Println("Starting")
+	//log.Println("Starting")
 
 Loop:
 	for {
@@ -147,7 +159,7 @@ Loop:
 				this.issued,
 				this.count,
 				float64(this.issued)/float64(this.count)*100,
-				time.Since(start).Seconds(),
+				time.Since(this.timeStart).Seconds(),
 			)
 			this.mu.RUnlock()
 			// Force quit
@@ -156,9 +168,8 @@ Loop:
 			}
 		}
 	}
-	fmt.Println("")
-
-	log.Println("Finish")
+	//fmt.Println("")
+	//log.Println("Finish")
 	wg.Done()
 }
 
