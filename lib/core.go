@@ -86,7 +86,7 @@ func (this *Scanner) Start() {
 		this.issued,
 		this.count,
 		float64(this.issued)/float64(this.count)*100,
-		float64(this.count)/time.Since(this.timeStart).Seconds(),
+		float64(this.issued)/time.Since(this.timeStart).Seconds(),
 		time.Since(this.timeStart).Seconds(),
 	)
 	this.mu.RUnlock()
@@ -163,7 +163,7 @@ Loop:
 				this.issued,
 				this.count,
 				float64(this.issued)/float64(this.count)*100,
-				float64(this.count)/time.Since(this.timeStart).Seconds(),
+				float64(this.issued)/time.Since(this.timeStart).Seconds(),
 				time.Since(this.timeStart).Seconds(),
 			)
 			this.mu.RUnlock()
