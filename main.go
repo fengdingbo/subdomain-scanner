@@ -5,9 +5,6 @@ import (
 	"github.com/fengdingbo/sub-domain-scanner/lib"
 	"flag"
 	"log"
-	"os/signal"
-	"syscall"
-	"fmt"
 )
 
 func loadOptions() *lib.Options {
@@ -46,9 +43,5 @@ func main() {
 		os.Exit(0)
 	}
 	this.Start()
-
-	sig := make(chan os.Signal, 1)
-	signal.Notify(sig, syscall.SIGINT, syscall.SIGTERM)
-	fmt.Printf("\rquit (%v)\n", <-sig)
 
 }

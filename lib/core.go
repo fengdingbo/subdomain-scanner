@@ -7,9 +7,9 @@ import (
 	"log"
 	"bufio"
 	"context"
-	"strings"
 	"sync"
 	"net"
+	"strings"
 )
 
 type Result struct {
@@ -24,6 +24,7 @@ type Scanner struct {
 	count      int
 	issued     int
 	context    context.Context
+	log        *os.File
 	mu         *sync.RWMutex
 }
 
@@ -34,16 +35,26 @@ func NewScanner(opts *Options) *Scanner {
 	this.wordChan = make(chan string, this.opts.Threads)
 	this.resultChan = make(chan Result)
 	this.mu = new(sync.RWMutex)
+
+	f, err := os.Create(opts.Log)
+	this.log = f
+
+	if err != nil {
+		log.Fatalln(err)
+	}
 	return &this
 }
 
 func (this *Scanner) Start() {
+	var wg sync.WaitGroup
+	wg.Add(1)
+	go this.progressPrint(&wg)
+
 	for i := 0; i < this.opts.Threads; i++ {
-		go this.worker()
+		go this.worker(&wg)
 	}
 
-	go this.result()
-	go this.progressPrint()
+	//go this.result()
 
 	// 读取字典
 	f, err := os.Open(this.opts.Dict)
@@ -59,10 +70,13 @@ func (this *Scanner) Start() {
 	scanner := bufio.NewScanner(f)
 
 	for scanner.Scan() {
+		wg.Add(1)
 		word := strings.TrimSpace(scanner.Text())
 		this.wordChan <- word
 	}
-	return
+
+	wg.Wait()
+
 }
 
 func (this *Scanner) incr() {
@@ -71,45 +85,60 @@ func (this *Scanner) incr() {
 	this.mu.Unlock()
 }
 
-func (this *Scanner) worker() {
+func (this *Scanner) worker(wg *sync.WaitGroup) {
 	for v := range this.wordChan {
 		this.incr()
 		host := fmt.Sprintf("%s.%s", v, this.opts.Domain)
 		ip, err := this.LookupHost(host)
 		if err == nil {
-			this.resultChan <- Result{host, ip}
-		}
-	}
-
-	fmt.Println("worker")
-}
-
-func (this *Scanner) result() {
-	f, err := os.Create(this.opts.Log)
-	for re := range this.resultChan {
-		// 如果没有一个可用ip存在,则不记录
-		if IsBlackIPs(re.Addr) {
-			continue
-		}
-
-		this.progressClean()
-		fmt.Printf("[+] %v\n", re)
-		if err == nil {
-			f.WriteString(fmt.Sprintf("%v\t%v\n", re.Host, re.Addr))
+			//this.resultChan <- Result{host, ip}
+			this.result(Result{host, ip})
+			wg.Done()
 		}
 	}
 }
+
+func (this *Scanner) result (re Result) {
+	// 如果没有一个可用ip存在,则不记录
+	if IsBlackIPs(re.Addr) {
+		return
+	}
+
+	this.progressClean()
+	fmt.Printf("[+] %v\n", re)
+
+	this.mu.Lock()
+	this.log.WriteString(fmt.Sprintf("%v\t%v\n", re.Host, re.Addr))
+	this.mu.Unlock()
+}
+
+//func (this *Scanner) result() {
+//	f, err := os.Create(this.opts.Log)
+//	for re := range this.resultChan {
+//		// 如果没有一个可用ip存在,则不记录
+//		if IsBlackIPs(re.Addr) {
+//			continue
+//		}
+//
+//		this.progressClean()
+//		fmt.Printf("[+] %v\n", re)
+//		if err == nil {
+//			f.WriteString(fmt.Sprintf("%v\t%v\n", re.Host, re.Addr))
+//		}
+//	}
+//}
 
 func (this *Scanner) progressClean() {
 	fmt.Fprint(os.Stderr, "\r\x1b[2K")
 }
 
-func (this *Scanner) progressPrint() {
+func (this *Scanner) progressPrint(wg *sync.WaitGroup) {
 	start := time.Now()
 	tick := time.NewTicker(1 * time.Second)
 	format := "\r%d|%d|%.4f%%|scanned in %.2f seconds"
-
 	log.Println("Starting")
+
+Loop:
 	for {
 		select {
 		case <-tick.C:
@@ -121,23 +150,23 @@ func (this *Scanner) progressPrint() {
 				time.Since(start).Seconds(),
 			)
 			this.mu.RUnlock()
-
 			// Force quit
 			if this.issued == this.count {
-				//this.progressClean()
-				fmt.Println("")
-				log.Println("Finished")
-				os.Exit(0)
+				break Loop;
 			}
 		}
 	}
+	fmt.Println("")
+
+	log.Println("Finish")
+	wg.Done()
 }
 
 // 获取泛域名ip地址
 func (this *Scanner) IsWildcardsDomain() (ip string, ok bool) {
 	// Go package net exists bug?
+	// @link https://github.com/golang/go/issues/28947
 	// Nonsupport RFC 4592
-	// https://github.com/golang/go/issues/28947
 	// net.LookupHost("*.qzone.qq.com") //  --> lookup *.qzone.qq.com: no such host
 
 	// md5(random string)
