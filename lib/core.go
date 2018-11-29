@@ -66,16 +66,17 @@ func (this *Scanner) Start( ) {
 	}
 	return
 }
-
+func (this *Scanner) incr() {
+	this.mu.Lock()
+	this.issued++
+	this.mu.Unlock()
+}
 func (this *Scanner) worker() {
 	for v:= range this.wordChan {
-
-		this.issued++
-
+		this.incr()
+		
 		host:=fmt.Sprintf("%s.%s", v, this.opts.Domain)
 		ip,err:=this.LookupHost(host)
-
-		//fmt.Println(Result{host,ip},err)
 		if err==nil {
 			this.resultChan<-Result{host,ip}
 		}
