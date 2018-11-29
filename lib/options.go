@@ -13,6 +13,8 @@ type Options struct {
 	Help      bool
 	Log       string
 	DNSServer string
+	ScanType  string
+	WildcardDomain bool
 }
 
 func New() *Options {
@@ -29,8 +31,13 @@ func (opts *Options) Validate() bool {
 		return false
 	}
 
+
 	if opts.Domain == "" {
-		return false
+		//if len(flag.Arg(0)) >=3 {
+		//	opts.Domain = flag.Arg(0)
+		//} else {
+			return false
+		//}
 	}
 	_, err := os.Stat(opts.Dict)
 	if err != nil {

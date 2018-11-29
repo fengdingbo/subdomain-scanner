@@ -14,7 +14,8 @@ func loadOptions() *lib.Options {
 	flag.StringVar(&o.Dict, "f", "dict/subnames_full.txt", "File contains new line delimited subs")
 	flag.BoolVar(&o.Help, "h", false, "Show this help message and exit")
 	flag.StringVar(&o.Log, "o", "", "Output file to write results to (defaults to ./log/{target}).txt")
-	flag.StringVar(&o.DNSServer, "dns", "", "DNS global server,eg:8.8.8.8/8.8.4.4")
+	flag.StringVar(&o.DNSServer, "dns", "8.8.8.8/8.8.4.4", "DNS global server")
+	flag.BoolVar(&o.WildcardDomain, "wd", false, "Force scan with wildcard domain")
 	flag.Parse()
 
 	if !o.Validate() {
@@ -36,12 +37,6 @@ func main() {
 	}
 	log.Printf("[+] Found DNS Server %s", o.DNSServer)
 
-	// TODO 泛域名处理逻辑
-	log.Printf("[+] Validate wildcard domain *.%v exists", o.Domain)
-	if ip, ok := this.IsWildcardsDomain(); ok {
-		log.Printf("Domain %v is wildcard,*.%v ip is %s", o.Domain, o.Domain, ip)
-		os.Exit(0)
-	}
 	this.Start()
 
 }
