@@ -1,14 +1,30 @@
 package lib
 
-import "net"
+import (
+	"net"
+)
 
+func IsBlackIPs(ips []net.IP) bool {
+	i := len(ips);
+	for _, v := range ips {
+		if (IsBlackIP(v.String())) {
+			i--
+		}
+	}
+
+	if i == 0 {
+		return true
+	}
+
+	return false
+}
 func IsBlackIP(s string) bool {
 	if !IsPublicIP(net.ParseIP(s)) {
 		return true
 	}
 
-	for _,v:= range []string{"1.1.1.1", "127.0.0.1", "0.0.0.0","0.0.0.1"} {
-		if v==s {
+	for _, v := range []string{"1.1.1.1", "127.0.0.1", "0.0.0.0", "0.0.0.1"} {
+		if v == s {
 			return true
 		}
 	}
