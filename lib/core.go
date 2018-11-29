@@ -79,12 +79,14 @@ func (this *Scanner) Start() {
 
 	wg.Wait()
 
-	format := "\r%d|%d|%.4f%%|scanned in %.2f seconds\n"
+	format := "\r%d|%d|%.4f%%|%.4f/s|scanned in %.2f seconds\n"
 	this.mu.RLock()
+	this.progressClean()
 	fmt.Fprintf(os.Stderr, format,
 		this.issued,
 		this.count,
 		float64(this.issued)/float64(this.count)*100,
+		float64(this.count)/time.Since(this.timeStart).Seconds(),
 		time.Since(this.timeStart).Seconds(),
 	)
 	this.mu.RUnlock()
@@ -149,7 +151,7 @@ func (this *Scanner) progressClean() {
 func (this *Scanner) progressPrint(wg *sync.WaitGroup) {
 	//start := time.Now()
 	tick := time.NewTicker(1 * time.Second)
-	format := "\r%d|%d|%.4f%%|scanned in %.2f seconds"
+	format := "\r%d|%d|%.4f%%|%.4f/s|scanned in %.2f seconds"
 	//log.Println("Starting")
 
 Loop:
@@ -161,6 +163,7 @@ Loop:
 				this.issued,
 				this.count,
 				float64(this.issued)/float64(this.count)*100,
+				float64(this.count)/time.Since(this.timeStart).Seconds(),
 				time.Since(this.timeStart).Seconds(),
 			)
 			this.mu.RUnlock()
