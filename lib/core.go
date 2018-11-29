@@ -105,8 +105,10 @@ func (this *Scanner) worker(wg *sync.WaitGroup) {
 		if err == nil {
 			//this.resultChan <- Result{host, ip}
 			this.result(Result{host, ip})
-			wg.Done()
 		}
+
+
+		wg.Done()
 	}
 }
 
@@ -168,8 +170,7 @@ Loop:
 			}
 		}
 	}
-	//fmt.Println("")
-	//log.Println("Finish")
+
 	wg.Done()
 }
 
