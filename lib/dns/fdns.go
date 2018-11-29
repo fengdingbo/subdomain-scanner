@@ -16,21 +16,24 @@ func New(servers []string) *DnsResolver {
 
 	return &DnsResolver{servers, len(servers) * 2, rand.New(rand.NewSource(time.Now().UnixNano()))}
 }
+
 type DnsResolver struct {
 	Servers    []string
 	RetryTimes int
 	r          *rand.Rand
 }
+
 var DefaultResolver = &DnsResolver{}
 
-func LookupHost(domain string) ([]net.IP, error){
-	if len(DefaultResolver.Servers)==0 {
+func LookupHost(domain string) ([]net.IP, error) {
+	if len(DefaultResolver.Servers) == 0 {
 		// TODO load /etc/resolv.conf
 		// default goolge
-		DefaultResolver = New([]string{"8.8.8.8","8.8.4.4"})
+		DefaultResolver = New([]string{"8.8.8.8", "8.8.4.4"})
 	}
 	return DefaultResolver.LookupHost(domain)
 }
+
 func (r *DnsResolver) LookupHost(host string) ([]net.IP, error) {
 	return r.lookupHost(host, r.RetryTimes)
 }

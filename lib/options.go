@@ -6,51 +6,49 @@ import (
 )
 
 type Options struct {
-	wordMap		[]string
-	Threads		int
-	Domain		string
-	Dict		string
-	Help 		bool
-	Log			string
-	DNSAddress	string
+	wordMap   []string
+	Threads   int
+	Domain    string
+	Dict      string
+	Help      bool
+	Log       string
+	DNSServer string
 }
-
 
 func New() *Options {
 	return &Options{
 	}
 }
 
-func (opts *Options) Validate() bool{
+func (opts *Options) Validate() bool {
 	if opts.Help {
 		return false
 	}
 
-	if opts.Threads<=0 {
+	if opts.Threads <= 0 {
 		return false
 	}
 
-	if opts.Domain=="" {
+	if opts.Domain == "" {
 		return false
 	}
 	_, err := os.Stat(opts.Dict)
-	if err!= nil {
+	if err != nil {
 		return false
 	}
 
 	if opts.Log == "" {
-		logDir:="log"
+		logDir := "log"
 		_, err := os.Stat(logDir)
-		if err!= nil {
+		if err != nil {
 			os.Mkdir(logDir, os.ModePerm)
 		}
-		opts.Log = fmt.Sprintf("%s/%s.txt",logDir, opts.Domain)
+		opts.Log = fmt.Sprintf("%s/%s.txt", logDir, opts.Domain)
 	}
 
-	if opts.DNSAddress == "" {
-		opts.DNSAddress = "8.8.8.8:53"
+	if opts.DNSServer == "" {
+		opts.DNSServer = "8.8.8.8 8.8.4.4"
 	}
 
 	return true
 }
-
