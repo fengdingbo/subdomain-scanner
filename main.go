@@ -14,7 +14,7 @@ func loadOptions() *lib.Options {
 	flag.StringVar(&o.Dict, "f", "dict/subnames_full.txt", "File contains new line delimited subs")
 	flag.BoolVar(&o.Help, "h", false, "Show this help message and exit")
 	flag.StringVar(&o.Log, "o", "", "Output file to write results to (defaults to ./log/{target}).txt")
-	flag.StringVar(&o.DNSServer, "dns", "", "DNS global server,eg:8.8.8.8")
+	flag.StringVar(&o.DNSServer, "dns", "", "DNS global server,eg:8.8.8.8/8.8.4.4")
 	flag.Parse()
 
 	if !o.Validate() {

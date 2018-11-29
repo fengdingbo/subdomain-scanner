@@ -201,7 +201,7 @@ func (this *Scanner) TestDNSServer() bool {
 	ipaddr, err := this.LookupHost("google-public-dns-a.google.com") // test lookup an existed domain
 
 	if err != nil {
-		log.Println(err)
+		//log.Println(err)
 		return false
 	}
 	// Validate dns pollution
