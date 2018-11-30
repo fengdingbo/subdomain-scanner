@@ -17,7 +17,7 @@ func loadOptions() *lib.Options {
 	flag.StringVar(&o.Log, "o", "", "Output file to write results to (defaults to ./log/{target}).txt")
 	flag.StringVar(&o.DNSServer, "dns", "8.8.8.8/8.8.4.4", "DNS global server")
 	flag.BoolVar(&o.WildcardDomain, "fw", false, "Force scan with wildcard domain")
-	flag.BoolVar(&o.AXFC, "axfr", false, "DNS Zone Transfer Protocol (AXFR) of RFC 5936")
+	flag.BoolVar(&o.AXFC, "axfr", true, "DNS Zone Transfer Protocol (AXFR) of RFC 5936")
 	flag.Parse()
 
 	if !o.Validate() {
@@ -40,13 +40,15 @@ func main() {
 	log.Printf("[+] Found DNS Server %s", o.DNSServer)
 
 	// 检查是否存在DNS zone transfer
-	log.Printf("[+] Validate AXFR of DNS zone transfer ")
-	if axfr, err := this.TestAXFR(o.Domain); err == nil {
-		for _, v := range axfr {
-			fmt.Println(v)
+	if o.AXFC {
+		log.Printf("[+] Validate AXFR of DNS zone transfer ")
+		if axfr, err := this.TestAXFR(o.Domain); err == nil {
+			for _, v := range axfr {
+				fmt.Println(v)
+			}
+			log.Printf("[+] Found DNS Server exists DNS zone transfer")
+			os.Exit(0)
 		}
-		log.Printf("[+] Found DNS Server exists DNS zone transfer")
-		os.Exit(0)
 	}
 
 	this.Start()
