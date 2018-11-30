@@ -10,6 +10,7 @@ import (
 	"sync"
 	"net"
 	"strings"
+	"github.com/fengdingbo/sub-domain-scanner/lib/dns"
 )
 
 type Result struct {
@@ -55,7 +56,7 @@ func (this *Scanner) WildcardsDomain() {
 			os.Exit(0)
 		}
 
-		for _,v:=range ip {
+		for _, v := range ip {
 			this.BlackIPs = append(this.BlackIPs, v)
 		}
 	}
@@ -124,12 +125,11 @@ func (this *Scanner) worker(wg *sync.WaitGroup) {
 			this.result(Result{host, ip})
 		}
 
-
 		wg.Done()
 	}
 }
 
-func (this *Scanner) result (re Result) {
+func (this *Scanner) result(re Result) {
 	// 如果没有一个可用ip存在,则不记录
 	if this.IsBlackIPs(re.Addr) {
 		return
@@ -197,6 +197,15 @@ func (this *Scanner) IsWildcardsDomain() (ip []net.IP, ok bool) {
 	}
 
 	return addrs, true
+}
+
+func (this *Scanner) TestAXFR() (results []string, err error) {
+	if results, err = dns.Axrf(this.opts.Domain); err == nil {
+		for _, v := range results {
+			this.log.WriteString(fmt.Sprintf("%s\n", v))
+		}
+	}
+	return
 }
 
 func (this *Scanner) TestDNSServer() bool {

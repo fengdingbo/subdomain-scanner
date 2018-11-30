@@ -23,9 +23,9 @@ func (this *Scanner) IsBlackIP(s string) bool {
 		return true
 	}
 
-	blackIps:=[]string{"1.1.1.1", "127.0.0.1", "0.0.0.0", "0.0.0.1"}
+	blackIps := []string{"1.1.1.1", "127.0.0.1", "0.0.0.0", "0.0.0.1"}
 
-	for _,v:=range this.BlackIPs {
+	for _, v := range this.BlackIPs {
 		blackIps = append(blackIps, v.String())
 	}
 

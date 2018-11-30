@@ -62,7 +62,7 @@ func (r *DnsResolver) lookupHost(host string, triesLeft int) ([]net.IP, error) {
 	}
 
 	if len(in.Answer) == 0 {
-		return result,errors.New("Unknown")
+		return result, errors.New("Unknown")
 	}
 
 	for _, record := range in.Answer {

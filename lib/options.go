@@ -7,14 +7,15 @@ import (
 )
 
 type Options struct {
-	Threads   int
-	Domain    string
-	Dict      string
-	Help      bool
-	Log       string
-	DNSServer string
-	ScanType  string
+	Threads        int
+	Domain         string
+	Dict           string
+	Help           bool
+	Log            string
+	DNSServer      string
+	ScanType       string
 	WildcardDomain bool
+	AXFC           bool
 }
 
 func New() *Options {
@@ -31,12 +32,11 @@ func (opts *Options) Validate() bool {
 		return false
 	}
 
-
 	if opts.Domain == "" {
 		//if len(flag.Arg(0)) >=3 {
 		//	opts.Domain = flag.Arg(0)
 		//} else {
-			return false
+		return false
 		//}
 	}
 	_, err := os.Stat(opts.Dict)
@@ -80,12 +80,11 @@ func (opts *Options) printOptions() {
 	value := reflect.ValueOf(*opts)
 	types := reflect.TypeOf(*opts)
 
-
 	fmt.Println(`=============================================
-sub-domain-scanner v0.1
+sub-domain-scanner v0.3#dev
 =============================================`)
 
-	for i := 0; i < types.NumField(); i++{
+	for i := 0; i < types.NumField(); i++ {
 		if types.Field(i).Name[0] >= 65 && types.Field(i).Name[0] <= 90 {
 			fmt.Printf("[+] %-15s: %v\n", types.Field(i).Name, value.Field(i).Interface())
 		}
