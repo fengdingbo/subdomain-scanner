@@ -17,3 +17,9 @@ func (this *Scanner) LookupHost(host string) (addrs []net.IP, err error) {
 
 	return ipaddr, nil
 }
+
+func (this *Scanner) LookupNS(host string) ([]string, error) {
+	DnsResolver := dns.New(strings.Split(this.opts.DNSServer, "/"))
+
+	return DnsResolver.LookupNS(host)
+}

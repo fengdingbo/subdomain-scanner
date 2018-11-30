@@ -41,7 +41,7 @@ func main() {
 
 	// 检查是否存在DNS zone transfer
 	log.Printf("[+] Validate AXFR of DNS zone transfer ")
-	if axfr, err := this.TestAXFR(); err == nil {
+	if axfr, err := this.TestAXFR(o.Domain); err == nil {
 		for _, v := range axfr {
 			fmt.Println(v)
 		}

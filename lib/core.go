@@ -199,10 +199,14 @@ func (this *Scanner) IsWildcardsDomain() (ip []net.IP, ok bool) {
 	return addrs, true
 }
 
-func (this *Scanner) TestAXFR() (results []string, err error) {
-	if results, err = dns.Axrf(this.opts.Domain); err == nil {
+func (this *Scanner) TestAXFR(domain string) (results []string, err error) {
+	server, err := this.LookupNS(domain)
+
+	if results, err = dns.Axrf(domain, server); err == nil {
 		for _, v := range results {
+			this.mu.Lock()
 			this.log.WriteString(fmt.Sprintf("%s\n", v))
+			this.mu.Unlock()
 		}
 	}
 	return

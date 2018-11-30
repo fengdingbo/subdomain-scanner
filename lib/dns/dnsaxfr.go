@@ -7,13 +7,9 @@ import (
 	"github.com/miekg/dns"
 )
 
-func Axrf(hostname string) (results []string, err error) {
+func Axrf(hostname string, servers []string) (results []string, err error) {
 	results = []string{}
 	domain := strings.ToLower(hostname)
-	servers, err := net.LookupNS(domain)
-	if err != nil {
-		return
-	}
 
 	fqdn := dns.Fqdn(domain)
 	for _, server := range servers {
@@ -23,7 +19,7 @@ func Axrf(hostname string) (results []string, err error) {
 		msg.SetAxfr(fqdn)
 
 		transfer := new(dns.Transfer)
-		answerChan, err := transfer.In(msg, net.JoinHostPort(server.Host, "53"))
+		answerChan, err := transfer.In(msg, net.JoinHostPort(server, "53"))
 		if err != nil {
 			continue
 		}
