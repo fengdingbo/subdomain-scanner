@@ -4,6 +4,7 @@ import (
 	"os"
 	"fmt"
 	"reflect"
+	"bufio"
 )
 
 type Options struct {
@@ -16,6 +17,8 @@ type Options struct {
 	ScanType       string
 	WildcardDomain bool
 	AXFC           bool
+	ScanListFN     string
+	ScanDomainList []string
 }
 
 func New() *Options {
@@ -23,8 +26,41 @@ func New() *Options {
 	}
 }
 
+func (opts *Options) existsDomain() bool {
+	opts.ScanDomainList = []string{}
+	for {
+		if opts.ScanListFN != "" {
+			f, err := os.Open(opts.ScanListFN)
+			if err != nil {
+				break;
+			}
+
+			scanner := bufio.NewScanner(f)
+			for scanner.Scan() {
+				opts.ScanDomainList = append(opts.ScanDomainList, scanner.Text())
+			}
+		}
+
+		break;
+	}
+
+	if (len(opts.ScanDomainList) > 0) {
+		return true
+	}
+	if opts.Domain != "" {
+		opts.ScanDomainList = append(opts.ScanDomainList, opts.Domain)
+		return true
+	}
+
+	return false
+}
+
 func (opts *Options) Validate() bool {
 	if opts.Help {
+		return false
+	}
+
+	if (! opts.existsDomain()) {
 		return false
 	}
 
@@ -32,13 +68,13 @@ func (opts *Options) Validate() bool {
 		return false
 	}
 
-	if opts.Domain == "" {
-		//if len(flag.Arg(0)) >=3 {
-		//	opts.Domain = flag.Arg(0)
-		//} else {
-		return false
-		//}
-	}
+	//if opts.Domain == "" {
+	//	//if len(flag.Arg(0)) >=3 {
+	//	//	opts.Domain = flag.Arg(0)
+	//	//} else {
+	//	return false
+	//	//}
+	//}
 	_, err := os.Stat(opts.Dict)
 	if err != nil {
 		return false

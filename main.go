@@ -8,6 +8,17 @@ import (
 	"fmt"
 )
 
+func main() {
+	o := loadOptions()
+
+	if (len(o.ScanDomainList) > 0) {
+		for _, v := range o.ScanDomainList {
+			o.Domain = v
+			run(o)
+		}
+	}
+}
+
 func loadOptions() *lib.Options {
 	o := lib.New()
 	flag.IntVar(&o.Threads, "t", 200, "Num of scan threads")
@@ -18,6 +29,7 @@ func loadOptions() *lib.Options {
 	flag.StringVar(&o.DNSServer, "dns", "8.8.8.8/8.8.4.4", "DNS global server")
 	flag.BoolVar(&o.WildcardDomain, "fw", false, "Force scan with wildcard domain")
 	flag.BoolVar(&o.AXFC, "axfr", true, "DNS Zone Transfer Protocol (AXFR) of RFC 5936")
+	flag.StringVar(&o.ScanListFN, "l", "", "The target Domain in file")
 	flag.Parse()
 
 	if !o.Validate() {
@@ -27,11 +39,8 @@ func loadOptions() *lib.Options {
 	return o
 }
 
-func main() {
-	o := loadOptions()
-
+func run(o *lib.Options) {
 	this := lib.NewScanner(o)
-
 	log.Printf("[+] Validate DNS servers...")
 	if !this.TestDNSServer() {
 		log.Println("[!] DNS servers unreliable")
