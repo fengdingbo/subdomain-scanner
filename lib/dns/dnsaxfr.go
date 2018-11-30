@@ -35,6 +35,9 @@ func Axrf(hostname string, servers []string) (results []string, err error) {
 			}
 		}
 
+		if (len(results) == 0) {
+			continue
+		}
 		return results, nil
 	}
 	return results, errors.New("Transfer failed")
