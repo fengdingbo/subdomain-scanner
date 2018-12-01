@@ -39,6 +39,7 @@ func (opts *Options) existsDomain() bool {
 			for scanner.Scan() {
 				opts.ScanDomainList = append(opts.ScanDomainList, scanner.Text())
 			}
+			f.Close()
 		}
 
 		break;
@@ -68,13 +69,6 @@ func (opts *Options) Validate() bool {
 		return false
 	}
 
-	//if opts.Domain == "" {
-	//	//if len(flag.Arg(0)) >=3 {
-	//	//	opts.Domain = flag.Arg(0)
-	//	//} else {
-	//	return false
-	//	//}
-	//}
 	_, err := os.Stat(opts.Dict)
 	if err != nil {
 		return false
