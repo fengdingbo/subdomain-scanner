@@ -22,6 +22,7 @@ type Scanner struct {
 	opts       *Options
 	resultChan chan Result
 	wordChan   chan string
+	found      int
 	count      int
 	issued     int
 	context    context.Context
@@ -51,7 +52,7 @@ func NewScanner(opts *Options) *Scanner {
 func (this *Scanner) WildcardsDomain() {
 	log.Printf("[+] Validate wildcard domain *.%v exists", this.opts.Domain)
 	if ip, ok := this.IsWildcardsDomain(); ok {
-		log.Printf("Domain %v is wildcard,*.%v ip is %v", this.opts.Domain, this.opts.Domain, ip)
+		log.Printf("[+] Domain %v is wildcard,*.%v ip is %v", this.opts.Domain, this.opts.Domain, ip)
 		if ! this.opts.WildcardDomain {
 			os.Exit(0)
 		}
@@ -95,16 +96,16 @@ func (this *Scanner) Start() {
 
 	wg.Wait()
 
-	format := "\r%d|%d|%.4f%%|%.4f/s|scanned in %.2f seconds\n"
+	format := "All Done. %d found, %.4f/s, %d scanned in %.2f seconds\n"
 	this.mu.RLock()
 	this.progressClean()
-	fmt.Fprintf(os.Stderr, format,
-		this.issued,
-		this.count,
-		float64(this.issued)/float64(this.count)*100,
+	log.Printf(format,
+		this.found,
 		float64(this.issued)/time.Since(this.timeStart).Seconds(),
+		this.issued,
 		time.Since(this.timeStart).Seconds(),
 	)
+	log.Printf("The output result file is log/%s.txt\n", this.opts.Domain)
 	this.mu.RUnlock()
 
 }
@@ -139,6 +140,7 @@ func (this *Scanner) result(re Result) {
 	fmt.Printf("[+] %v\n", re)
 
 	this.mu.Lock()
+	this.found++
 	this.log.WriteString(fmt.Sprintf("%v\t%v\n", re.Host, re.Addr))
 	this.mu.Unlock()
 }
@@ -150,8 +152,8 @@ func (this *Scanner) progressClean() {
 func (this *Scanner) progressPrint(wg *sync.WaitGroup) {
 	//start := time.Now()
 	tick := time.NewTicker(1 * time.Second)
-	format := "\r%d|%d|%.4f%%|%.4f/s|scanned in %.2f seconds"
-	//log.Println("Starting")
+	format := "\r%d|%.4f%%|%.4f/s|%d scanned in %.2f seconds"
+	log.Println("Starting")
 
 Loop:
 	for {
@@ -159,10 +161,10 @@ Loop:
 		case <-tick.C:
 			this.mu.RLock()
 			fmt.Fprintf(os.Stderr, format,
-				this.issued,
 				this.count,
 				float64(this.issued)/float64(this.count)*100,
 				float64(this.issued)/time.Since(this.timeStart).Seconds(),
+				this.issued,
 				time.Since(this.timeStart).Seconds(),
 			)
 			this.mu.RUnlock()
