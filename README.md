@@ -37,7 +37,7 @@ A fast sub domain brute tool for pentesters.
 ## Examples ##
         
 
-## Change Log ##
+## Change Log
 * [2018-12-01] 
         * 泛域名识别+扫描(泛域名得到的ip加入黑名单，继续爆破非黑名单ip)
         * 支持DNS域传送
