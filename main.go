@@ -27,7 +27,7 @@ func loadOptions() *lib.Options {
 	flag.BoolVar(&o.Help, "h", false, "Show this help message and exit")
 	flag.StringVar(&o.Log, "o", "", "Output file to write results to (defaults to ./log/{target}).txt")
 	flag.StringVar(&o.DNSServer, "dns", "8.8.8.8/8.8.4.4", "DNS global server")
-	flag.BoolVar(&o.WildcardDomain, "fw", false, "Force scan with wildcard domain")
+	flag.BoolVar(&o.WildcardDomain, "fw", true, "Force scan with wildcard domain")
 	flag.BoolVar(&o.AXFC, "axfr", true, "DNS Zone Transfer Protocol (AXFR) of RFC 5936")
 	flag.StringVar(&o.ScanListFN, "l", "", "The target Domain in file")
 	flag.Parse()
