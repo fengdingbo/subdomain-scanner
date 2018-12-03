@@ -1,6 +1,8 @@
 sub-domain-scanner
 ======
-A fast sub domain brute tool for pentesters.
+使用Golang编写的子域名检测程序，特点就是快、快、快。
+
+1Mb带宽，200个goroutine，稳定1700左右/s的扫描速度。
 
 
 ## Dependencies ##
@@ -62,4 +64,11 @@ A fast sub domain brute tool for pentesters.
   - [ ] 自定义导出格式、计划支持txt、json等
   - [ ] 更好的参数调用提示
   - [ ] 支持api接口调用
-  
+
+
+## Thanks ##
+[https://github.com/lijiejie/subDomainsBrute](https://github.com/lijiejie/subDomainsBrute)
+
+[https://github.com/binaryfigments/axfr](https://github.com/binaryfigments/axfr)
+
+[https://github.com/OJ/gobuster](https://github.com/OJ/gobuster)
