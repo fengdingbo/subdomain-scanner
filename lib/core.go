@@ -105,7 +105,7 @@ func (this *Scanner) Start() {
 		this.issued,
 		time.Since(this.timeStart).Seconds(),
 	)
-	log.Printf("The output result file is log/%s.txt\n", this.opts.Domain)
+	log.Printf("The output result file is %s\n", this.opts.Log)
 	this.mu.RUnlock()
 
 }

@@ -56,6 +56,7 @@ func run(o *lib.Options) {
 				fmt.Println(v)
 			}
 			log.Printf("[+] Found DNS Server exists DNS zone transfer")
+			log.Printf("The output result file is %s\n", o.Log)
 			os.Exit(0)
 		}
 	}
