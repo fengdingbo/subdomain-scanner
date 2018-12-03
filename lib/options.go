@@ -14,7 +14,6 @@ type Options struct {
 	Help           bool
 	Log            string
 	DNSServer      string
-	ScanType       string
 	WildcardDomain bool
 	AXFC           bool
 	ScanListFN     string
