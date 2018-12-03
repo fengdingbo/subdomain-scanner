@@ -17,22 +17,22 @@ A fast sub domain brute tool for pentesters.
 ## Usage ##
         Usage of ./sub-domain-scanner:
           -axfr
-                DNS Zone Transfer Protocol (AXFR) of RFC 5936 (default true)
+            	DNS Zone Transfer Protocol (AXFR) of RFC 5936 (default true)
           -d string
-                The target Domain
+            	The target Domain
           -dns string
-                DNS global server (default "8.8.8.8/8.8.4.4")
+            	DNS global server (default "8.8.8.8/8.8.4.4")
           -f string
-                File contains new line delimited subs (default "dict/subnames_full.txt")
+            	File contains new line delimited subs (default "dict/subnames_full.txt")
           -fw
-                Force scan with wildcard domain
+            	Force scan with wildcard domain (default true)
           -h	Show this help message and exit
           -l string
-                The target Domain in file
+            	The target Domain in file
           -o string
-                Output file to write results to (defaults to ./log/{target}).txt
+            	Output file to write results to (defaults to ./log/{target}).txt
           -t int
-                Num of scan threads (default 200)
+            	Num of scan threads (default 200)
 
 ## Examples ##
         
