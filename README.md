@@ -15,6 +15,7 @@ sub-domain-scanner
 
 ## Building ##
 	go get github.com/miekg/dns
+	go get github.com/hashicorp/go-multierror
 	go get github.com/fengdingbo/sub-domain-scanner
 	cd $GOPATH/src/github.com/fengdingbo/sub-domain-scanner/
 	make
@@ -58,7 +59,7 @@ sub-domain-scanner
 	* Demo雏形
 
 
-## 子域名扫描功能描述 ##
+## TODO ##
   - [x] 可选dns服务器
   - [x] 自定义字典
   - [x] 并发扫描

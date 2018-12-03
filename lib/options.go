@@ -112,7 +112,7 @@ func (opts *Options) PrintOptions() {
 	types := reflect.TypeOf(*opts)
 
 	fmt.Fprintln(os.Stderr,`=============================================
-sub-domain-scanner v0.3#dev
+sub-domain-scanner v0.4#dev
 =============================================`)
 
 	for i := 0; i < types.NumField(); i++ {
