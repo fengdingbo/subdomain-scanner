@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"reflect"
 	"bufio"
+	"github.com/hashicorp/go-multierror"
+	"flag"
 )
 
 type Options struct {
@@ -55,24 +57,25 @@ func (opts *Options) existsDomain() bool {
 	return false
 }
 
-func (opts *Options) Validate() bool {
-	if opts.Help {
-		return false
+func (opts *Options) Validate() *multierror.Error {
+	if (opts.Help) {
+		flag.Usage()
+		os.Exit(0)
 	}
 
+	var errorList *multierror.Error
 	if (! opts.existsDomain()) {
-		return false
+		errorList = multierror.Append(errorList, fmt.Errorf("Domain (-d): Must be specified"))
 	}
 
 	if opts.Threads <= 0 {
-		return false
+		errorList = multierror.Append(errorList, fmt.Errorf("-t best > 0"))
 	}
 
 	_, err := os.Stat(opts.Dict)
 	if err != nil {
-		return false
+		errorList = multierror.Append(errorList, fmt.Errorf("Dictionary file  (-f): Must be specified"))
 	}
-
 	if opts.Log == "" {
 		logDir := "log"
 		_, err := os.Stat(logDir)
@@ -101,22 +104,23 @@ func (opts *Options) Validate() bool {
 		opts.DNSServer = "8.8.8.8/8.8.4.4"
 	}
 
-	opts.printOptions()
-	return true
+	return errorList
 }
 
-func (opts *Options) printOptions() {
+func (opts *Options) PrintOptions() {
 	value := reflect.ValueOf(*opts)
 	types := reflect.TypeOf(*opts)
 
-	fmt.Println(`=============================================
+	fmt.Fprintln(os.Stderr,`=============================================
 sub-domain-scanner v0.3#dev
 =============================================`)
 
 	for i := 0; i < types.NumField(); i++ {
 		if types.Field(i).Name[0] >= 65 && types.Field(i).Name[0] <= 90 {
-			fmt.Printf("[+] %-15s: %v\n", types.Field(i).Name, value.Field(i).Interface())
+			if value.Field(i).Interface() !="" {
+				fmt.Fprintf(os.Stderr,"[+] %-15s: %v\n", types.Field(i).Name, value.Field(i).Interface())
+			}
 		}
 	}
-	fmt.Println("=============================================")
+	fmt.Fprintln(os.Stderr, "=============================================")
 }

@@ -10,6 +10,7 @@ import (
 
 func main() {
 	o := loadOptions()
+	o.PrintOptions()
 
 	if (len(o.ScanDomainList) > 0) {
 		for _, v := range o.ScanDomainList {
@@ -32,10 +33,11 @@ func loadOptions() *lib.Options {
 	flag.StringVar(&o.ScanListFN, "l", "", "The target Domain in file")
 	flag.Parse()
 
-	if !o.Validate() {
-		flag.Usage()
+	if err := o.Validate(); err != nil {
+		log.Printf("[!] %s", err)
 		os.Exit(0)
 	}
+
 	return o
 }
 

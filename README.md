@@ -2,11 +2,15 @@ sub-domain-scanner
 ======
 使用Golang编写的子域名检测程序，特点就是快、快、快。
 
-1Mb带宽，200个goroutine，稳定1700左右/s的扫描速度。
+扫描速度依赖于网络环境。1Mb带宽，200个goroutine，稳定1700左右/s的扫描速度。
+
+默认为谷歌的DNS服务器，可自行配置其它DNS。
 
 
 ## Dependencies ##
 >go get github.com/miekg/dns
+
+>go get github.com/hashicorp/go-multierror
 
 
 ## Building ##
@@ -18,7 +22,7 @@ sub-domain-scanner
 
 
 ## Usage ##
-	Usage of ./sub-domain-scanner:
+	Usage of ./sub-domain-scanner -h
 	  -axfr
 			DNS Zone Transfer Protocol (AXFR) of RFC 5936 (default true)
 	  -d string
@@ -41,10 +45,12 @@ sub-domain-scanner
 ## Examples ##
         
 
-## Change Log 
+## Change Log  
+* [2018-12-03] 
+	* 更好的参数调用提示
 * [2018-12-01] 
-	* 泛域名识别+扫描(泛域名得到的ip加入黑名单，继续爆破非黑名单ip)
 	* 支持DNS域传送
+	* 泛域名识别+扫描(泛域名得到的ip加入黑名单，继续爆破非黑名单ip)
 * [2018-11-30] 
 	* 重构并发逻辑
 	* go官方的net包，不够完善，好多RFC都不支持，比如RFC 4592，所以使用了一个第三方包来做dns解析，提升扫描效率。
@@ -59,16 +65,18 @@ sub-domain-scanner
   - [x] 泛域名识别+扫描(泛域名得到的ip加入黑名单，继续爆破非黑名单ip)
   - [x] 支持DNS域传送
   - [x] 从文件中获取需要检测的域名
-  - [ ] 支持DNS AAAA，ipv6解析
+  - [ ] 支持DNS AAAA，ipv6检测
   - [ ] 深度扫描(多级子域名)
   - [ ] 自定义导出格式、计划支持txt、json等
-  - [ ] 更好的参数调用提示
+  - [x] 更友好的参数调用提示
   - [ ] 支持api接口调用
 
 
 ## Thanks ##
-[https://github.com/lijiejie/subDomainsBrute](https://github.com/lijiejie/subDomainsBrute)
+[https://github.com/miekg/dns](https://github.com/miekg/dns)
+
+[https://github.com/OJ/gobuster](https://github.com/OJ/gobuster)
 
 [https://github.com/binaryfigments/axfr](https://github.com/binaryfigments/axfr)
 
-[https://github.com/OJ/gobuster](https://github.com/OJ/gobuster)
+[https://github.com/lijiejie/subDomainsBrute](https://github.com/lijiejie/subDomainsBrute)
