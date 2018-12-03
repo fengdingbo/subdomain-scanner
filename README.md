@@ -8,11 +8,12 @@ A fast sub domain brute tool for pentesters.
 
 
 ## Building ##
->go get github.com/miekg/dns
->go get github.com/fengdingbo/sub-domain-scanner
->cd $GOPATH/src/github.com/fengdingbo/sub-domain-scanner/
->make
->./sub-domain-scanner -h
+	go get github.com/miekg/dns
+	go get github.com/fengdingbo/sub-domain-scanner
+	cd $GOPATH/src/github.com/fengdingbo/sub-domain-scanner/
+	make
+	./sub-domain-scanner -h
+
 
 ## Usage ##
 	Usage of ./sub-domain-scanner:
