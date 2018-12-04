@@ -10,6 +10,7 @@ import (
 )
 
 type Options struct {
+	Depth          int
 	Threads        int
 	Domain         string
 	Dict           string
@@ -111,14 +112,14 @@ func (opts *Options) PrintOptions() {
 	value := reflect.ValueOf(*opts)
 	types := reflect.TypeOf(*opts)
 
-	fmt.Fprintln(os.Stderr,`=============================================
+	fmt.Fprintln(os.Stderr, `=============================================
 sub-domain-scanner v0.4#dev
 =============================================`)
 
 	for i := 0; i < types.NumField(); i++ {
 		if types.Field(i).Name[0] >= 65 && types.Field(i).Name[0] <= 90 {
-			if value.Field(i).Interface() !="" {
-				fmt.Fprintf(os.Stderr,"[+] %-15s: %v\n", types.Field(i).Name, value.Field(i).Interface())
+			if value.Field(i).Interface() != "" {
+				fmt.Fprintf(os.Stderr, "[+] %-15s: %v\n", types.Field(i).Name, value.Field(i).Interface())
 			}
 		}
 	}

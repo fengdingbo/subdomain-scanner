@@ -7,7 +7,7 @@ import (
 func (this *Scanner) IsBlackIPs(ips []net.IP) bool {
 	i := len(ips);
 	for _, v := range ips {
-		if (this.IsBlackIP(v.String())) {
+		if (this.IsBlackList(v.String())) {
 			i--
 		}
 	}
@@ -18,21 +18,16 @@ func (this *Scanner) IsBlackIPs(ips []net.IP) bool {
 
 	return false
 }
-func (this *Scanner) IsBlackIP(s string) bool {
+
+func (this *Scanner) IsBlackList(s string) bool {
 	if !IsPublicIP(net.ParseIP(s)) {
 		return true
 	}
 
-	blackIps := []string{"1.1.1.1", "127.0.0.1", "0.0.0.0", "0.0.0.1"}
+	//blackIps := []string{"1.1.1.1", "127.0.0.1", "0.0.0.0", "0.0.0.1"}
 
-	for _, v := range this.BlackIPs {
-		blackIps = append(blackIps, v.String())
-	}
-
-	for _, v := range blackIps {
-		if v == s {
-			return true
-		}
+	if _, ok := this.BlackList[s]; ok {
+		return true
 	}
 	return false
 }

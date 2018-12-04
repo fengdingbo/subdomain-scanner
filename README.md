@@ -22,6 +22,10 @@ sub-domain-scanner
 	./sub-domain-scanner -h
 
 
+## Download from releases##
+Download compiled binaries from [releases](https://github.com/fengdingbo/sub-domain-scanner/releases)
+
+
 ## Usage ##
 	Usage of ./sub-domain-scanner -h
 	  -axfr

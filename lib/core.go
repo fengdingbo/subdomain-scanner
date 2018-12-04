@@ -6,7 +6,6 @@ import (
 	"time"
 	"log"
 	"bufio"
-	"context"
 	"sync"
 	"net"
 	"strings"
@@ -19,17 +18,15 @@ type Result struct {
 }
 
 type Scanner struct {
-	opts       *Options
-	resultChan chan Result
-	wordChan   chan string
-	found      int
-	count      int
-	issued     int
-	context    context.Context
-	log        *os.File
-	mu         *sync.RWMutex
-	timeStart  time.Time
-	BlackIPs   []net.IP
+	opts       *Options          // Options
+	wordChan   chan string       // 字典队列
+	found      int               // 发现域名数
+	count      int               // 字典总数
+	issued     int               // 当前处理数
+	log        *os.File          // log文件
+	mu         *sync.RWMutex     // 锁
+	timeStart  time.Time         // 执行开始时间
+	BlackList  map[string]string // 解析的黑名单字典，ip->泛域名
 }
 
 func NewScanner(opts *Options) *Scanner {
@@ -37,9 +34,8 @@ func NewScanner(opts *Options) *Scanner {
 	this.opts = opts
 
 	this.wordChan = make(chan string, this.opts.Threads)
-	this.resultChan = make(chan Result)
 	this.mu = new(sync.RWMutex)
-	this.BlackIPs = []net.IP{}
+	this.BlackList = make(map[string]string)
 
 	f, err := os.Create(opts.Log)
 	this.log = f
@@ -49,22 +45,29 @@ func NewScanner(opts *Options) *Scanner {
 	}
 	return &this
 }
-func (this *Scanner) WildcardsDomain() {
-	log.Printf("[+] Validate wildcard domain *.%v exists", this.opts.Domain)
-	if ip, ok := this.IsWildcardsDomain(); ok {
-		log.Printf("[+] Domain %v is wildcard,*.%v ip is %v", this.opts.Domain, this.opts.Domain, ip)
+
+// 验证泛域名
+// 解析泛域名后将解析的结果加入黑名单
+func (this *Scanner) WildcardsDomain(s string) bool {
+	//log.Printf("[+] Validate wildcard domain *.%v exists", this.opts.Domain)
+	if ip, ok := this.IsWildcardsDomain(s); ok {
+		//log.Printf("[+] Domain %v is wildcard,*.%v ip is %v", this.opts.Domain, this.opts.Domain, ip)
 		if ! this.opts.WildcardDomain {
 			os.Exit(0)
 		}
 
 		for _, v := range ip {
-			this.BlackIPs = append(this.BlackIPs, v)
+			this.BlackList[v.String()] = fmt.Sprintf("*.%s", this.opts.Domain)
 		}
+
+		return true
 	}
+
+	return false
 }
 
 func (this *Scanner) Start() {
-	this.WildcardsDomain()
+	this.WildcardsDomain(this.opts.Domain)
 
 	this.timeStart = time.Now()
 	var wg sync.WaitGroup
@@ -116,6 +119,8 @@ func (this *Scanner) incr() {
 	this.mu.Unlock()
 }
 
+// goroutine >= 1
+// 负责扫描字典队列
 func (this *Scanner) worker(wg *sync.WaitGroup) {
 	for v := range this.wordChan {
 		this.incr()
@@ -123,20 +128,45 @@ func (this *Scanner) worker(wg *sync.WaitGroup) {
 		ip, err := this.LookupHost(host)
 		if err == nil {
 			//this.resultChan <- Result{host, ip}
-			this.result(Result{host, ip})
+			this.result(Result{host, ip}, wg)
 		}
 
 		wg.Done()
 	}
 }
+func (this *Scanner) addChan(re Result, wg *sync.WaitGroup) {
 
-func (this *Scanner) result(re Result) {
+	// TODO
+	f, err := os.Open("dict/next_sub_full.txt")
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	scanner := bufio.NewScanner(f)
+
+	this.WildcardsDomain(re.Host)
+	for scanner.Scan() {
+		this.mu.Lock()
+		this.count++
+		this.mu.Unlock()
+
+		wg.Add(1)
+		word := strings.TrimSpace(scanner.Text())
+		word = fmt.Sprintf("%s.%s", word, re.Host[0:strings.LastIndex(re.Host, this.opts.Domain)-1])
+		this.wordChan <- word
+	}
+}
+
+func (this *Scanner) result(re Result, wg *sync.WaitGroup) {
 	// 如果没有一个可用ip存在,则不记录
 	if this.IsBlackIPs(re.Addr) {
 		return
 	}
 
 	this.progressClean()
+	go this.addChan(re, wg)
+
+	//php.Sleep(1)
 	fmt.Printf("[+] %v\n", re)
 
 	this.mu.Lock()
@@ -145,12 +175,15 @@ func (this *Scanner) result(re Result) {
 	this.mu.Unlock()
 }
 
+// 清除光标所在行的所有字符
 func (this *Scanner) progressClean() {
 	fmt.Fprint(os.Stderr, "\r\x1b[2K")
 }
 
+// goroutine = 1
+// 启动后该方法负责打印进度
+// 直到进度到100%跳出死循环
 func (this *Scanner) progressPrint(wg *sync.WaitGroup) {
-	//start := time.Now()
 	tick := time.NewTicker(1 * time.Second)
 	format := "\r%d|%.4f%%|%.4f/s|%d scanned in %.2f seconds"
 	log.Println("Starting")
@@ -179,7 +212,7 @@ Loop:
 }
 
 // 获取泛域名ip地址
-func (this *Scanner) IsWildcardsDomain() (ip []net.IP, ok bool) {
+func (this *Scanner) IsWildcardsDomain(s string) (ip []net.IP, ok bool) {
 	// Go package net exists bug?
 	// @link https://github.com/golang/go/issues/28947
 	// Nonsupport RFC 4592
@@ -191,7 +224,7 @@ func (this *Scanner) IsWildcardsDomain() (ip []net.IP, ok bool) {
 	// host := fmt.Sprintf("%s.%s", randSub, this.opts.Domain)
 	// addrs, err := net.LookupHost(host)
 
-	host := fmt.Sprintf("*.%s", this.opts.Domain)
+	host := fmt.Sprintf("*.%s", s)
 	addrs, err := this.LookupHost(host)
 
 	if err != nil {
@@ -201,6 +234,7 @@ func (this *Scanner) IsWildcardsDomain() (ip []net.IP, ok bool) {
 	return addrs, true
 }
 
+// 验证DNS域传送
 func (this *Scanner) TestAXFR(domain string) (results []string, err error) {
 	server, err := this.LookupNS(domain)
 
@@ -214,6 +248,7 @@ func (this *Scanner) TestAXFR(domain string) (results []string, err error) {
 	return
 }
 
+// 验证DNS服务器是否稳定
 func (this *Scanner) TestDNSServer() bool {
 	ipaddr, err := this.LookupHost("google-public-dns-a.google.com") // test lookup an existed domain
 
