@@ -2,6 +2,10 @@ package lib
 
 import (
 	"net"
+	"os"
+	"fmt"
+	"bufio"
+	"strings"
 )
 
 func (this *Scanner) IsBlackIPs(ips []net.IP) bool {
@@ -30,6 +34,20 @@ func (this *Scanner) IsBlackList(s string) bool {
 		return true
 	}
 	return false
+}
+
+func (this *Scanner) LoadBlackListFile()  {
+	f, err := os.Open("dict/ip_black_list.txt")
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	scanner := bufio.NewScanner(f)
+
+	for scanner.Scan() {
+		this.BlackList[strings.TrimSpace(scanner.Text())] = ""
+	}
+	defer f.Close()
 }
 
 func IsPublicIP(IP net.IP) bool {

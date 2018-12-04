@@ -36,6 +36,7 @@ func NewScanner(opts *Options) *Scanner {
 	this.wordChan = make(chan string, this.opts.Threads)
 	this.mu = new(sync.RWMutex)
 	this.BlackList = make(map[string]string)
+	this.LoadBlackListFile()
 
 	f, err := os.Create(opts.Log)
 	this.log = f
@@ -172,7 +173,6 @@ func (this *Scanner) result(re Result, wg *sync.WaitGroup) {
 	this.progressClean()
 	go this.addChan(re, wg)
 
-	//php.Sleep(1)
 	fmt.Printf("[+] %v\n", re)
 
 	this.mu.Lock()
