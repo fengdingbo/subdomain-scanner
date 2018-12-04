@@ -72,6 +72,9 @@ func (opts *Options) Validate() *multierror.Error {
 	if opts.Threads <= 0 {
 		errorList = multierror.Append(errorList, fmt.Errorf("-t best > 0"))
 	}
+	if opts.Depth <= 0 {
+		errorList = multierror.Append(errorList, fmt.Errorf("Depth scan (-depth):  best > 0"))
+	}
 
 	_, err := os.Stat(opts.Dict)
 	if err != nil {
