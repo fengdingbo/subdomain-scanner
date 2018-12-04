@@ -18,15 +18,15 @@ type Result struct {
 }
 
 type Scanner struct {
-	opts       *Options          // Options
-	wordChan   chan string       // 字典队列
-	found      int               // 发现域名数
-	count      int               // 字典总数
-	issued     int               // 当前处理数
-	log        *os.File          // log文件
-	mu         *sync.RWMutex     // 锁
-	timeStart  time.Time         // 执行开始时间
-	BlackList  map[string]string // 解析的黑名单字典，ip->泛域名
+	opts      *Options          // Options
+	wordChan  chan string       // 字典队列
+	found     int               // 发现域名数
+	count     int               // 字典总数
+	issued    int               // 当前处理数
+	log       *os.File          // log文件
+	mu        *sync.RWMutex     // 锁
+	timeStart time.Time         // 执行开始时间
+	BlackList map[string]string // 解析的黑名单字典，ip->泛域名
 }
 
 func NewScanner(opts *Options) *Scanner {
@@ -52,9 +52,9 @@ func (this *Scanner) WildcardsDomain(s string) bool {
 	//log.Printf("[+] Validate wildcard domain *.%v exists", this.opts.Domain)
 	if ip, ok := this.IsWildcardsDomain(s); ok {
 		//log.Printf("[+] Domain %v is wildcard,*.%v ip is %v", this.opts.Domain, this.opts.Domain, ip)
-		if ! this.opts.WildcardDomain {
-			os.Exit(0)
-		}
+		//if ! this.opts.WildcardDomain {
+		//	return true
+		//}
 
 		for _, v := range ip {
 			this.BlackList[v.String()] = fmt.Sprintf("*.%s", this.opts.Domain)
@@ -67,7 +67,9 @@ func (this *Scanner) WildcardsDomain(s string) bool {
 }
 
 func (this *Scanner) Start() {
-	this.WildcardsDomain(this.opts.Domain)
+	if ok := this.WildcardsDomain(this.opts.Domain); ok && !this.opts.WildcardDomain {
+		return
+	}
 
 	this.timeStart = time.Now()
 	var wg sync.WaitGroup
@@ -135,6 +137,9 @@ func (this *Scanner) worker(wg *sync.WaitGroup) {
 	}
 }
 func (this *Scanner) addChan(re Result, wg *sync.WaitGroup) {
+	if ok := this.WildcardsDomain(re.Host); ok && !this.opts.WildcardDomain {
+		return
+	}
 
 	// TODO
 	f, err := os.Open("dict/next_sub_full.txt")
@@ -144,7 +149,6 @@ func (this *Scanner) addChan(re Result, wg *sync.WaitGroup) {
 
 	scanner := bufio.NewScanner(f)
 
-	this.WildcardsDomain(re.Host)
 	for scanner.Scan() {
 		this.mu.Lock()
 		this.count++
@@ -155,6 +159,8 @@ func (this *Scanner) addChan(re Result, wg *sync.WaitGroup) {
 		word = fmt.Sprintf("%s.%s", word, re.Host[0:strings.LastIndex(re.Host, this.opts.Domain)-1])
 		this.wordChan <- word
 	}
+
+	defer f.Close()
 }
 
 func (this *Scanner) result(re Result, wg *sync.WaitGroup) {
