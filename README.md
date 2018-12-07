@@ -71,7 +71,7 @@ Download compiled binaries from [releases](https://github.com/fengdingbo/sub-dom
   - [x] 支持DNS域传送
   - [x] 从文件中获取需要检测的域名
   - [ ] 支持DNS AAAA，ipv6检测
-  - [ ] 深度扫描(多级子域名)
+  - [ ] 深度扫描(多级子域名检测)
   - [ ] 自定义导出格式、计划支持txt、json等
   - [x] 更友好的参数调用提示
   - [ ] 支持api接口调用

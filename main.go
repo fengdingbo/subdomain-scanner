@@ -14,6 +14,7 @@ func main() {
 
 	if (len(o.ScanDomainList) > 0) {
 		for _, v := range o.ScanDomainList {
+			o.Log = fmt.Sprintf("log/%s.txt", v)
 			o.Domain = v
 			run(o)
 		}
