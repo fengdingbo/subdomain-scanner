@@ -22,7 +22,7 @@ subdomain-scanner
 	./subdomain-scanner -h
 
 
-## Download from releases##
+## Download from releases ##
 Download compiled binaries from [releases](https://github.com/fengdingbo/subdomain-scanner/releases)
 
 
