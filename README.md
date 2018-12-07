@@ -32,6 +32,8 @@ Download compiled binaries from [releases](https://github.com/fengdingbo/subdoma
 			DNS Zone Transfer Protocol (AXFR) of RFC 5936 (default true)
 	  -d string
 			The target Domain
+	  -depth int
+			Scan sub domain depth. range[>=1] (default 1)
 	  -dns string
 			DNS global server (default "8.8.8.8/8.8.4.4")
 	  -f string
@@ -71,7 +73,7 @@ Download compiled binaries from [releases](https://github.com/fengdingbo/subdoma
   - [x] 支持DNS域传送
   - [x] 从文件中获取需要检测的域名
   - [ ] 支持DNS AAAA，ipv6检测
-  - [ ] 深度扫描(多级子域名检测)
+  - [x] 深度扫描(多级子域名检测)
   - [ ] 自定义导出格式、计划支持txt、json等
   - [x] 更友好的参数调用提示
   - [ ] 支持api接口调用
