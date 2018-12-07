@@ -9,6 +9,7 @@ import (
 	"sync"
 	"net"
 	"strings"
+	"context"
 	"github.com/fengdingbo/sub-domain-scanner/lib/dns"
 )
 
@@ -19,6 +20,7 @@ type Result struct {
 
 type Scanner struct {
 	opts      *Options          // Options
+	preWordChan  chan string       //
 	wordChan  chan string       // 字典队列
 	found     int               // 发现域名数
 	count     int               // 字典总数
@@ -34,9 +36,10 @@ func NewScanner(opts *Options) *Scanner {
 	this.opts = opts
 
 	this.wordChan = make(chan string, this.opts.Threads)
+	this.preWordChan = make(chan string)
 	this.mu = new(sync.RWMutex)
 	this.BlackList = make(map[string]string)
-	this.LoadBlackListFile()
+	//this.LoadBlackListFile()
 
 	f, err := os.Create(opts.Log)
 	this.log = f
@@ -74,9 +77,13 @@ func (this *Scanner) Start() {
 
 	this.timeStart = time.Now()
 	var wg sync.WaitGroup
-	wg.Add(1)
-	go this.progressPrint(&wg)
+	//wg.Add(1)
 
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	go this.progressPrint(ctx, &wg)
+	go this.preWord(&wg)
 	for i := 0; i < this.opts.Threads; i++ {
 		go this.worker(&wg)
 	}
@@ -130,38 +137,41 @@ func (this *Scanner) worker(wg *sync.WaitGroup) {
 		host := fmt.Sprintf("%s.%s", v, this.opts.Domain)
 		ip, err := this.LookupHost(host)
 		if err == nil {
-			//this.resultChan <- Result{host, ip}
 			this.result(Result{host, ip}, wg)
 		}
 
 		wg.Done()
 	}
 }
-func (this *Scanner) addChan(re Result, wg *sync.WaitGroup) {
-	if ok := this.WildcardsDomain(re.Host); ok && !this.opts.WildcardDomain {
-		return
-	}
-
+func (this *Scanner) preWord(wg *sync.WaitGroup) {
 	// TODO
-	f, err := os.Open("dict/next_sub_full.txt")
+	f, err := os.Open("dict/next_sub.txt")
 	if err != nil {
 		fmt.Println(err)
 	}
 
-	scanner := bufio.NewScanner(f)
-
-	for scanner.Scan() {
-		this.mu.Lock()
-		this.count++
-		this.mu.Unlock()
-
-		wg.Add(1)
-		word := strings.TrimSpace(scanner.Text())
-		word = fmt.Sprintf("%s.%s", word, re.Host[0:strings.LastIndex(re.Host, this.opts.Domain)-1])
-		this.wordChan <- word
-	}
 
 	defer f.Close()
+	for v := range this.preWordChan {
+		if ok := this.WildcardsDomain(v); !ok && this.opts.WildcardDomain {
+			f.Seek(0, 0)
+			scanner := bufio.NewScanner(f)
+
+			for scanner.Scan() {
+				this.mu.Lock()
+				this.count++
+				this.mu.Unlock()
+
+				wg.Add(1)
+				word := strings.TrimSpace(scanner.Text())
+				word = fmt.Sprintf("%s.%s", word, v[0:strings.LastIndex(v, this.opts.Domain)-1])
+				this.wordChan <- word
+			}
+		}
+
+
+		wg.Done()
+	}
 }
 
 func (this *Scanner) result(re Result, wg *sync.WaitGroup) {
@@ -170,8 +180,14 @@ func (this *Scanner) result(re Result, wg *sync.WaitGroup) {
 		return
 	}
 
+	if this.opts.Depth > 1 {
+		wg.Add(1)
+		go func(){
+			this.preWordChan<-re.Host
+		}()
+	}
+
 	this.progressClean()
-	go this.addChan(re, wg)
 
 	fmt.Printf("[+] %v\n", re)
 
@@ -189,12 +205,11 @@ func (this *Scanner) progressClean() {
 // goroutine = 1
 // 启动后该方法负责打印进度
 // 直到进度到100%跳出死循环
-func (this *Scanner) progressPrint(wg *sync.WaitGroup) {
+func (this *Scanner) progressPrint(c context.Context,wg *sync.WaitGroup) {
 	tick := time.NewTicker(1 * time.Second)
 	format := "\r%d|%.4f%%|%.4f/s|%d scanned in %.2f seconds"
 	log.Println("Starting")
 
-Loop:
 	for {
 		select {
 		case <-tick.C:
@@ -208,13 +223,14 @@ Loop:
 			)
 			this.mu.RUnlock()
 			// Force quit
-			if this.issued == this.count {
-				break Loop;
-			}
+			//if this.issued == this.count {
+			//	break Loop;
+			//}
+
+		case <-c.Done():
+			return
 		}
 	}
-
-	wg.Done()
 }
 
 // 获取泛域名ip地址

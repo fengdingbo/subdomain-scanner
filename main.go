@@ -23,7 +23,7 @@ func main() {
 func loadOptions() *lib.Options {
 	o := lib.New()
 	flag.IntVar(&o.Threads, "t", 200, "Num of scan threads")
-	flag.IntVar(&o.Depth, "depth", 1, "Scan sub domain depth")
+	flag.IntVar(&o.Depth, "depth", 1, "Scan sub domain depth. range[>=1]")
 	flag.StringVar(&o.Domain, "d", "", "The target Domain")
 	flag.StringVar(&o.Dict, "f", "dict/subnames_full.txt", "File contains new line delimited subs")
 	flag.BoolVar(&o.Help, "h", false, "Show this help message and exit")

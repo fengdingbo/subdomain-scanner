@@ -10,10 +10,10 @@ import (
 )
 
 type Options struct {
-	Depth          int
 	Threads        int
 	Domain         string
 	Dict           string
+	Depth          int
 	Help           bool
 	Log            string
 	DNSServer      string
@@ -73,7 +73,7 @@ func (opts *Options) Validate() *multierror.Error {
 		errorList = multierror.Append(errorList, fmt.Errorf("-t best > 0"))
 	}
 	if opts.Depth <= 0 {
-		errorList = multierror.Append(errorList, fmt.Errorf("Depth scan (-depth):  best > 0"))
+		errorList = multierror.Append(errorList, fmt.Errorf("Depth scan (-depth): range [>=1]"))
 	}
 
 	_, err := os.Stat(opts.Dict)
