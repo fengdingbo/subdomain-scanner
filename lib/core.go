@@ -152,8 +152,9 @@ func (this *Scanner) preWord(wg *sync.WaitGroup) {
 
 
 	defer f.Close()
+	// TODO 深度扫描暂时不支持泛域名扫描
 	for v := range this.preWordChan {
-		if ok := this.WildcardsDomain(v); !ok && this.opts.WildcardDomain {
+		if ok := this.WildcardsDomain(v); !ok{
 			f.Seek(0, 0)
 			scanner := bufio.NewScanner(f)
 
