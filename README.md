@@ -58,7 +58,7 @@ Download compiled binaries from [releases](https://github.com/fengdingbo/sub-dom
 	* 泛域名识别+扫描(泛域名得到的ip加入黑名单，继续爆破非黑名单ip)
 * [2018-11-30] 
 	* 重构并发逻辑
-	* go官方的net包，不够完善，好多RFC都不支持，比如RFC 4592，所以使用了一个第三方包来做dns解析，提升扫描效率。
+	* go官方的net包，不够完善，好多RFC都不支持，比如[RFC 4592](https://github.com/golang/go/issues/28947)，所以使用了一个第三方包来做dns解析，提升扫描效率。
 * [2018-11-27] 
 	* Demo雏形
 
