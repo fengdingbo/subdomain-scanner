@@ -2,7 +2,7 @@ package lib
 
 import (
 	"net"
-	"github.com/fengdingbo/sub-domain-scanner/lib/dns"
+	"github.com/fengdingbo/subdomain-scanner/lib/dns"
 	"strings"
 )
 

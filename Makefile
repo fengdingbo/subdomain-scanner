@@ -2,7 +2,7 @@ TARGET=./bin
 ARCHS=amd64 386
 LDFLAGS="-s -w"
 #LDFLAGS="-s -w -X main.VERSION=0.3 -X 'main.GIT_HASH=`git log --stat |head -1|awk '{print $$2}'`' -X 'main.GO_VERSION=`go version`'"
-BIN="sub-domain-scanner"
+BIN="subdomains-scanner"
 PARKAGE=`find ./bin -type d`
 current:
 	go build -ldflags=${LDFLAGS}

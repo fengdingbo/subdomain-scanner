@@ -2,7 +2,7 @@ package main
 
 import (
 	"os"
-	"github.com/fengdingbo/sub-domain-scanner/lib"
+	"github.com/fengdingbo/subdomain-scanner/lib"
 	"flag"
 	"log"
 	"fmt"

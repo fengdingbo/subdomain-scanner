@@ -1,4 +1,4 @@
-sub-domain-scanner
+subdomain-scanner
 ======
 使用Golang编写的子域名检测程序，特点就是快、快、快。
 
@@ -16,18 +16,18 @@ sub-domain-scanner
 ## Building ##
 	go get github.com/miekg/dns
 	go get github.com/hashicorp/go-multierror
-	go get github.com/fengdingbo/sub-domain-scanner
-	cd $GOPATH/src/github.com/fengdingbo/sub-domain-scanner/
+	go get github.com/fengdingbo/subdomain-scanner
+	cd $GOPATH/src/github.com/fengdingbo/subdomain-scanner/
 	make
-	./sub-domain-scanner -h
+	./subdomain-scanner -h
 
 
 ## Download from releases##
-Download compiled binaries from [releases](https://github.com/fengdingbo/sub-domain-scanner/releases)
+Download compiled binaries from [releases](https://github.com/fengdingbo/subdomain-scanner/releases)
 
 
 ## Usage ##
-	Usage of ./sub-domain-scanner -h
+	Usage of ./subdomain-scanner -h
 	  -axfr
 			DNS Zone Transfer Protocol (AXFR) of RFC 5936 (default true)
 	  -d string

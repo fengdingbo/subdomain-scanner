@@ -10,7 +10,7 @@ import (
 	"net"
 	"strings"
 	"context"
-	"github.com/fengdingbo/sub-domain-scanner/lib/dns"
+	"github.com/fengdingbo/subdomain-scanner/lib/dns"
 )
 
 type Result struct {
