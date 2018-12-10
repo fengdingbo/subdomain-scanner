@@ -7,12 +7,6 @@ subdomain-scanner
 默认为谷歌的DNS服务器，可自行配置其它DNS。
 
 
-## Dependencies ##
->go get github.com/miekg/dns
-
->go get github.com/hashicorp/go-multierror
-
-
 ## Building ##
 	go get github.com/miekg/dns
 	go get github.com/hashicorp/go-multierror
@@ -50,7 +44,28 @@ Download compiled binaries from [releases](https://github.com/fengdingbo/subdoma
 
 
 ## Examples ##
-        
+	$./subdomain-scanner -d qq.com
+	=============================================
+	subdomain-scanner v0.4#dev
+	=============================================
+	[+] Threads        : 200
+	[+] Domain         : qq.com
+	[+] Dict           : dict/subnames_full.txt
+	[+] Depth          : 1
+	[+] Help           : false
+	[+] Log            : log/qq.com.txt
+	[+] DNSServer      : 8.8.8.8/8.8.4.4
+	[+] WildcardDomain : true
+	[+] AXFC           : true
+	[+] ScanDomainList : [qq.com]
+	=============================================
+	2018/12/10 00:05:05 [+] Validate DNS servers...
+	2018/12/10 00:05:05 [+] Found DNS Server 8.8.8.8/8.8.4.4
+	2018/12/10 00:05:05 [+] Validate AXFR of DNS zone transfer 
+	2018/12/10 00:05:08 Starting
+	2018/12/10 00:05:52 All Done. 2146 found, 1744.6328/s, 76120 scanned in 43.63 seconds
+	2018/12/10 00:05:52 The output result file is log/qq.com.txt
+
 
 ## Change Log  
 * [2018-12-03] 
