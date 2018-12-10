@@ -2,7 +2,7 @@ TARGET=./bin
 ARCHS=amd64 386
 LDFLAGS="-s -w"
 #LDFLAGS="-s -w -X main.VERSION=0.3 -X 'main.GIT_HASH=`git log --stat |head -1|awk '{print $$2}'`' -X 'main.GO_VERSION=`go version`'"
-BIN="subdomains-scanner"
+BIN="subdomain-scanner"
 PARKAGE=`find ./bin -type d`
 current:
 	go build -ldflags=${LDFLAGS}
@@ -34,9 +34,10 @@ darwin:
 	done; \
 	echo "Done."
 tag:
+    cd
 	@for S in ${PARKAGE}; do \
-	cp -Rfv dict $${S}/ ; \
-	tar  -zcvf $${S}.tar.gz $${S} ; \
+	echo "cp -Rfv dict $${S}/" ; \
+	echo "tar  -zcvf $${S}.tar.gz $${S}" ; \
 	done; \
 
 all: darwin linux windows
