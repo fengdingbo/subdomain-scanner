@@ -34,7 +34,6 @@ darwin:
 	done; \
 	echo "Done."
 tag:
-    cd
 	@for S in ${PARKAGE}; do \
 	echo "cp -Rfv dict $${S}/" ; \
 	echo "tar  -zcvf $${S}.tar.gz $${S}" ; \
